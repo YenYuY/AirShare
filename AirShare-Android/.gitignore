@@ -1,0 +1,16 @@
+*.iml
+.gradle/
+.gradle-user-home/
+.idea/
+.kotlin/
+.toolchains/
+local.properties
+build/
+**/build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.jks
+*.keystore
+keystore.properties
+play/private/
