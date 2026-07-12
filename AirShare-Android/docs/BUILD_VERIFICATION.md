@@ -1,6 +1,6 @@
 # Build verification
 
-Verified locally on 2026-07-11 (Asia/Taipei).
+Verified locally on 2026-07-12 (Asia/Taipei).
 
 ## Toolchain
 
@@ -21,10 +21,11 @@ Result: `BUILD SUCCESSFUL`.
 
 ## Results
 
-- JVM unit tests: 51 passed, 0 failed, 0 skipped.
+- JVM unit tests: 55 passed, 0 failed, 0 skipped, including compact, medium, expanded, large, and compact-height adaptive layout policy checks.
 - Android Lint: 0 errors, 15 warnings. The remaining warnings are dependency/tool version notices, the intentional `targetSdk 35` selection, an upstream Bouncy Castle trust-manager detector warning, and an adaptive-icon resource qualifier warning.
-- Debug APK: 39 MB, SHA-256 `d52b5726494585eb4bcd91fbc8fe40f8bab707e3aa048c6fd304beef40044861`.
-- Release AAB: 4.4 MB, SHA-256 `15cbec9337c58d6fd9c14b71e09fc2824a5ed363424260c73a45b2bce25cd99a`.
+- Debug APK: 45 MB, SHA-256 `eff4e1dae72177b5f8770797df669ed0fc9769a96fc83275960e00c7d23f30be`.
+- Release AAB: 4.3 MB, SHA-256 `60060a73d99b212e254f9d3321614e40761c1fcd9aa7f88368ac2ee1b9506366`.
+- Material 3 Adaptive Window Size Classes drive runtime layout changes for phone, tablet portrait, tablet landscape, short-height windows, and desktop-size windows. Four matching Android Studio previews compile in the debug source set.
 - The arm64 native libraries in the AAB use `2**14` (`16 KiB`) ELF `LOAD` alignment.
 - The current release AAB is intentionally unsigned because no private upload key has been supplied. Configure `keystore.properties` and rebuild before uploading to Google Play.
 

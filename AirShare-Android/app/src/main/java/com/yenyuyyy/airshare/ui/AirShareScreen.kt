@@ -2,9 +2,9 @@ package com.yenyuyyy.airshare.ui
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -18,10 +18,10 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -39,12 +39,16 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.currentWindowDpSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,6 +61,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.yenyuyyy.airshare.R
 import com.yenyuyyy.airshare.language.AppLanguageOption
@@ -68,6 +73,7 @@ enum class PermissionAction {
     OPEN_SETTINGS,
 }
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun AirShareScreen(
     state: AirShareUiState,
@@ -86,6 +92,12 @@ fun AirShareScreen(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+    val contentScrollState = rememberScrollState()
+    var privacyDetailsOpen by rememberSaveable { mutableStateOf(false) }
+    val windowSize = currentWindowDpSize()
+    val layout = currentWindowAdaptiveInfo()
+        .windowSizeClass
+        .toAirShareLayoutProfile(hasLargeWidth = windowSize.width >= AIRSHARE_LARGE_WIDTH_DP.dp)
 
     LaunchedEffect(state.notice) {
         val message = when (state.notice) {
@@ -106,55 +118,186 @@ fun AirShareScreen(
         contentWindowInsets = WindowInsets.safeDrawing,
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
-        BoxWithConstraints(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
             contentAlignment = Alignment.TopCenter,
         ) {
-            val horizontalPadding = if (maxWidth >= 600.dp) 32.dp else 20.dp
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .widthIn(max = 760.dp),
-                contentPadding = PaddingValues(
-                    start = horizontalPadding,
-                    end = horizontalPadding,
-                    top = 18.dp,
-                    bottom = 32.dp,
-                ),
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-            ) {
-                item {
-                    Header(
-                        text = text,
-                        selectedLanguage = selectedLanguage,
-                        onLanguageSelected = onLanguageSelected,
-                    )
-                }
-                item { PrivacyStatement(text) }
-                item {
-                    StatusSurface(
-                        state = state,
-                        text = text,
-                        permissionAction = permissionAction,
-                        onRequestPermission = onRequestPermission,
-                        onOpenSettings = onOpenSettings,
-                        onChangeSelection = onChangeSelection,
-                        onStartSharing = onStartSharing,
-                        onStopSharing = onStopSharing,
-                        onCopyAddress = { address ->
-                            onCopyAddress(address)
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(text.copied)
-                            }
-                        },
-                    )
-                }
-                if (state.shareStatus !is ShareStatus.Active) {
-                    item { HowItWorks(text) }
+            val copyAndNotify: (String) -> Unit = { address ->
+                onCopyAddress(address)
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(text.copied)
                 }
             }
+            if (layout.useSupportingPane) {
+                SupportingPaneContent(
+                    state = state,
+                    text = text,
+                    selectedLanguage = selectedLanguage,
+                    permissionAction = permissionAction,
+                    layout = layout,
+                    scrollState = contentScrollState,
+                    privacyDetailsOpen = privacyDetailsOpen,
+                    onPrivacyDetailsOpenChange = { privacyDetailsOpen = it },
+                    onLanguageSelected = onLanguageSelected,
+                    onRequestPermission = onRequestPermission,
+                    onOpenSettings = onOpenSettings,
+                    onChangeSelection = onChangeSelection,
+                    onStartSharing = onStartSharing,
+                    onStopSharing = onStopSharing,
+                    onCopyAddress = copyAndNotify,
+                )
+            } else {
+                SinglePaneContent(
+                    state = state,
+                    text = text,
+                    selectedLanguage = selectedLanguage,
+                    permissionAction = permissionAction,
+                    layout = layout,
+                    scrollState = contentScrollState,
+                    privacyDetailsOpen = privacyDetailsOpen,
+                    onPrivacyDetailsOpenChange = { privacyDetailsOpen = it },
+                    onLanguageSelected = onLanguageSelected,
+                    onRequestPermission = onRequestPermission,
+                    onOpenSettings = onOpenSettings,
+                    onChangeSelection = onChangeSelection,
+                    onStartSharing = onStartSharing,
+                    onStopSharing = onStopSharing,
+                    onCopyAddress = copyAndNotify,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SinglePaneContent(
+    state: AirShareUiState,
+    text: AppText,
+    selectedLanguage: AppLanguageOption,
+    permissionAction: PermissionAction,
+    layout: AirShareLayoutProfile,
+    scrollState: ScrollState,
+    privacyDetailsOpen: Boolean,
+    onPrivacyDetailsOpenChange: (Boolean) -> Unit,
+    onLanguageSelected: (AppLanguageOption) -> Unit,
+    onRequestPermission: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onChangeSelection: () -> Unit,
+    onStartSharing: () -> Unit,
+    onStopSharing: () -> Unit,
+    onCopyAddress: (String) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .widthIn(max = layout.maxContentWidth)
+            .fillMaxWidth()
+            .verticalScroll(scrollState)
+            .padding(
+                start = layout.horizontalPadding,
+                end = layout.horizontalPadding,
+                top = 18.dp,
+                bottom = 32.dp,
+            ),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
+    ) {
+        Header(
+            text = text,
+            selectedLanguage = selectedLanguage,
+            onLanguageSelected = onLanguageSelected,
+        )
+        PrivacyStatement(
+            text = text,
+            detailsOpen = privacyDetailsOpen,
+            onDetailsOpenChange = onPrivacyDetailsOpenChange,
+        )
+        StatusSurface(
+            state = state,
+            text = text,
+            permissionAction = permissionAction,
+            sessionLayout = layout.sessionLayout,
+            qrSize = layout.qrSize,
+            onRequestPermission = onRequestPermission,
+            onOpenSettings = onOpenSettings,
+            onChangeSelection = onChangeSelection,
+            onStartSharing = onStartSharing,
+            onStopSharing = onStopSharing,
+            onCopyAddress = onCopyAddress,
+        )
+        if (state.shareStatus !is ShareStatus.Active) {
+            HowItWorks(text)
+        }
+    }
+}
+
+@Composable
+private fun SupportingPaneContent(
+    state: AirShareUiState,
+    text: AppText,
+    selectedLanguage: AppLanguageOption,
+    permissionAction: PermissionAction,
+    layout: AirShareLayoutProfile,
+    scrollState: ScrollState,
+    privacyDetailsOpen: Boolean,
+    onPrivacyDetailsOpenChange: (Boolean) -> Unit,
+    onLanguageSelected: (AppLanguageOption) -> Unit,
+    onRequestPermission: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onChangeSelection: () -> Unit,
+    onStartSharing: () -> Unit,
+    onStopSharing: () -> Unit,
+    onCopyAddress: (String) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .widthIn(max = layout.maxContentWidth)
+            .fillMaxWidth()
+            .verticalScroll(scrollState)
+            .padding(
+                start = layout.horizontalPadding,
+                end = layout.horizontalPadding,
+                top = 24.dp,
+                bottom = 40.dp,
+            ),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(layout.paneGap),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Column(
+                modifier = Modifier.width(layout.supportingPaneWidth),
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+            ) {
+                Header(
+                    text = text,
+                    selectedLanguage = selectedLanguage,
+                    onLanguageSelected = onLanguageSelected,
+                )
+                PrivacyStatement(
+                    text = text,
+                    detailsOpen = privacyDetailsOpen,
+                    onDetailsOpenChange = onPrivacyDetailsOpenChange,
+                )
+                if (state.shareStatus !is ShareStatus.Active) {
+                    HowItWorks(text)
+                }
+            }
+            StatusSurface(
+                state = state,
+                text = text,
+                permissionAction = permissionAction,
+                sessionLayout = layout.sessionLayout,
+                qrSize = layout.qrSize,
+                onRequestPermission = onRequestPermission,
+                onOpenSettings = onOpenSettings,
+                onChangeSelection = onChangeSelection,
+                onStartSharing = onStartSharing,
+                onStopSharing = onStopSharing,
+                onCopyAddress = onCopyAddress,
+                modifier = Modifier.weight(1f),
+            )
         }
     }
 }
@@ -236,8 +379,11 @@ private fun Header(
 }
 
 @Composable
-private fun PrivacyStatement(text: AppText) {
-    var detailsOpen by remember { mutableStateOf(false) }
+private fun PrivacyStatement(
+    text: AppText,
+    detailsOpen: Boolean,
+    onDetailsOpenChange: (Boolean) -> Unit,
+) {
     Surface(
         shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.secondaryContainer,
@@ -257,7 +403,7 @@ private fun PrivacyStatement(text: AppText) {
                 Text(text.privacyLabel, style = MaterialTheme.typography.titleMedium)
                 Text(text.privacyBody, style = MaterialTheme.typography.bodyMedium)
                 TextButton(
-                    onClick = { detailsOpen = true },
+                    onClick = { onDetailsOpenChange(true) },
                     contentPadding = PaddingValues(horizontal = 0.dp, vertical = 2.dp),
                 ) {
                     Text(text.privacyDetailsLabel)
@@ -267,11 +413,11 @@ private fun PrivacyStatement(text: AppText) {
     }
     if (detailsOpen) {
         AlertDialog(
-            onDismissRequest = { detailsOpen = false },
+            onDismissRequest = { onDetailsOpenChange(false) },
             title = { Text(text.privacyDetailsLabel) },
             text = { Text(text.privacyDetailsBody) },
             confirmButton = {
-                TextButton(onClick = { detailsOpen = false }) {
+                TextButton(onClick = { onDetailsOpenChange(false) }) {
                     Text(text.dismiss)
                 }
             },
@@ -284,15 +430,18 @@ private fun StatusSurface(
     state: AirShareUiState,
     text: AppText,
     permissionAction: PermissionAction,
+    sessionLayout: AirShareSessionLayout,
+    qrSize: Dp,
     onRequestPermission: () -> Unit,
     onOpenSettings: () -> Unit,
     onChangeSelection: () -> Unit,
     onStartSharing: () -> Unit,
     onStopSharing: () -> Unit,
     onCopyAddress: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surfaceContainer,
     ) {
@@ -314,6 +463,8 @@ private fun StatusSurface(
                     session = state.shareStatus,
                     text = text,
                     hasPartialAccess = state.mediaAccess == MediaAccess.PARTIAL,
+                    sessionLayout = sessionLayout,
+                    qrSize = qrSize,
                     onChangeSelection = onChangeSelection,
                     onCopyAddress = onCopyAddress,
                     onStopSharing = onStopSharing,
@@ -420,6 +571,8 @@ private fun ActiveContent(
     session: ShareStatus.Active,
     text: AppText,
     hasPartialAccess: Boolean,
+    sessionLayout: AirShareSessionLayout,
+    qrSize: Dp,
     onChangeSelection: () -> Unit,
     onCopyAddress: (String) -> Unit,
     onStopSharing: () -> Unit,
@@ -441,18 +594,64 @@ private fun ActiveContent(
         PartialAccessNotice(text, onChangeSelection)
     }
     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-    Text(
-        text = text.openOnComputer,
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.onSurface,
-    )
+    if (sessionLayout == AirShareSessionLayout.SIDE_BY_SIDE) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(28.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            SessionQr(
+                session = session,
+                text = text,
+                qrSize = qrSize,
+                modifier = Modifier.width(qrSize + 20.dp),
+            )
+            SessionControls(
+                session = session,
+                text = text,
+                onCopyAddress = onCopyAddress,
+                onStopSharing = onStopSharing,
+                modifier = Modifier.weight(1f),
+            )
+        }
+    } else {
+        SessionQr(
+            session = session,
+            text = text,
+            qrSize = qrSize,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        SessionControls(
+            session = session,
+            text = text,
+            onCopyAddress = onCopyAddress,
+            onStopSharing = onStopSharing,
+        )
+    }
+}
+
+@Composable
+private fun SessionQr(
+    session: ShareStatus.Active,
+    text: AppText,
+    qrSize: Dp,
+    modifier: Modifier = Modifier,
+) {
     val qrCode = rememberQrCode(session.url)
-    Box(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.Center,
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        Text(
+            text = text.openOnComputer,
+            modifier = Modifier.fillMaxWidth(),
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
         Surface(
-            modifier = Modifier.size(236.dp),
+            modifier = Modifier.size(qrSize),
             shape = MaterialTheme.shapes.medium,
             color = Color.White,
         ) {
@@ -463,57 +662,72 @@ private fun ActiveContent(
                 contentScale = ContentScale.Fit,
             )
         }
+        SelectionContainer {
+            Text(
+                text = session.url,
+                modifier = Modifier.fillMaxWidth(),
+                style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
     }
-    SelectionContainer {
-        Text(
-            text = session.url,
+}
+
+@Composable
+private fun SessionControls(
+    session: ShareStatus.Active,
+    text: AppText,
+    onCopyAddress: (String) -> Unit,
+    onStopSharing: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        OutlinedButton(
+            onClick = { onCopyAddress(session.url) },
             modifier = Modifier.fillMaxWidth(),
-            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface,
+            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_copy),
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(text.copyAddress)
+        }
+        Text(
+            text = text.keepAwakeHint,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-    }
-    OutlinedButton(
-        onClick = { onCopyAddress(session.url) },
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
-    ) {
-        Icon(
-            painter = painterResource(R.drawable.ic_copy),
-            contentDescription = null,
-            modifier = Modifier.size(18.dp),
+        Text(
+            text = text.certificateHint,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Spacer(Modifier.width(8.dp))
-        Text(text.copyAddress)
-    }
-    Text(
-        text = text.keepAwakeHint,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    Text(
-        text = text.certificateHint,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    Text(
-        text = "${text.fingerprintLabel}: ${session.certificateFingerprint}",
-        style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    OutlinedButton(
-        onClick = onStopSharing,
-        modifier = Modifier.fillMaxWidth(),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
-    ) {
-        Icon(
-            painter = painterResource(R.drawable.ic_stop),
-            contentDescription = null,
-            modifier = Modifier.size(18.dp),
+        Text(
+            text = "${text.fingerprintLabel}: ${session.certificateFingerprint}",
+            style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Spacer(Modifier.width(8.dp))
-        Text(text.stopSharing)
+        OutlinedButton(
+            onClick = onStopSharing,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_stop),
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(text.stopSharing)
+        }
     }
 }
 
