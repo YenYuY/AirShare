@@ -1,2 +1,0 @@
--keepattributes Signature,InnerClasses,EnclosingMethod,*Annotation*
--dontwarn org.bouncycastle.jce.provider.BouncyCastleProvider$1
