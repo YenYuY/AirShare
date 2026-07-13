@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AirShare | iPhone 相簿與影片區網抓取</title>
+    <meta
+      name="description"
+      content="AirShare 讓 iPhone 提供本機照片與影片，顯示 LAN URL，讓同一個區域網路內的電腦直接抓取下載。"
+    />
+    <link rel="icon" type="image/png" href="favicon-rounded.png?v=2" />
+    <link rel="shortcut icon" type="image/png" href="favicon-rounded.png?v=2" />
+    <link rel="apple-touch-icon" href="favicon-rounded.png?v=2" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f3f7ff;
+        --bg-soft: #e9f2ff;
+        --surface: #ffffff;
+        --ink: #192330;
+        --ink-soft: #4a5b6f;
+        --brand: #1570ef;
+        --brand-deep: #0d4fb0;
+        --accent: #0d9488;
+        --accent-soft: #d8f5f3;
+        --line: #dbe7fb;
+        --radius-xl: 28px;
+        --radius-lg: 18px;
+        --shadow: 0 16px 40px rgba(34, 35, 39, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Outfit", "Noto Sans TC", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 14% 10%, rgba(59, 130, 246, 0.18) 0%, transparent 32%),
+          radial-gradient(circle at 86% 8%, rgba(20, 184, 166, 0.16) 0%, transparent 26%),
+          linear-gradient(180deg, #f8fbff 0%, #ffffff 45%, #edf5ff 100%);
+        line-height: 1.6;
+      }
+
+      .shape {
+        position: fixed;
+        z-index: -1;
+        border-radius: 999px;
+        filter: blur(6px);
+        opacity: 0.32;
+        animation: drift 14s ease-in-out infinite;
+      }
+
+      .shape.one {
+        width: 190px;
+        height: 190px;
+        background: #8dc2ff;
+        left: -40px;
+        top: 18%;
+      }
+
+      .shape.two {
+        width: 230px;
+        height: 230px;
+        background: #8fe5df;
+        right: -70px;
+        top: 45%;
+        animation-delay: 1.8s;
+      }
+
+      @keyframes drift {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-14px);
+        }
+      }
+
+      .container {
+        width: min(1100px, 92vw);
+        margin: 0 auto;
+      }
+
+      nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 26px 0 8px;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 800;
+        font-size: 1.1rem;
+        letter-spacing: 0.03em;
+      }
+
+      .logo-mark {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        background-image: url("unnamed.jpg");
+        background-size: cover;
+        background-position: center;
+        border: 1px solid #d7e3f7;
+        box-shadow: 0 6px 16px rgba(21, 112, 239, 0.26);
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 20px;
+        font-size: 0.95rem;
+      }
+
+      .nav-links a {
+        color: var(--ink-soft);
+        text-decoration: none;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: 1.12fr 0.88fr;
+        align-items: center;
+        gap: 42px;
+        padding: 42px 0 54px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #fff4e8;
+        border: 1px solid #ffd5b9;
+        color: var(--brand-deep);
+        padding: 7px 14px;
+        border-radius: 999px;
+        font-size: 0.86rem;
+        font-weight: 600;
+      }
+
+      h1 {
+        margin: 14px 0 16px;
+        font-size: clamp(2rem, 4.8vw, 3.35rem);
+        line-height: 1.12;
+        letter-spacing: -0.02em;
+      }
+
+      .hero p {
+        margin: 0;
+        color: var(--ink-soft);
+        font-size: 1.08rem;
+        max-width: 48ch;
+      }
+
+      .cta-row {
+        margin-top: 28px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .btn {
+        border: none;
+        border-radius: 999px;
+        padding: 12px 22px;
+        font-size: 0.96rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: transform 0.2s ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+      }
+
+      .btn-primary {
+        color: #fff;
+        background: linear-gradient(135deg, var(--brand), var(--brand-deep));
+      }
+
+      .btn-secondary {
+        color: var(--accent);
+        background: #e7f5f3;
+      }
+
+      .btn-store {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 14px 9px 10px;
+        border-radius: 14px;
+        color: #fff;
+        background: #0f141d;
+        border: 1px solid #243040;
+      }
+
+      .btn-store:hover {
+        transform: translateY(-2px);
+        background: #111926;
+      }
+
+      .btn-store img {
+        width: 28px;
+        height: 28px;
+        display: block;
+        border-radius: 8px;
+      }
+
+      .store-copy {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.05;
+      }
+
+      .store-copy small {
+        font-size: 0.68rem;
+        font-weight: 500;
+        opacity: 0.78;
+      }
+
+      .store-copy strong {
+        font-size: 0.95rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+      }
+
+      .app-panel {
+        background: linear-gradient(165deg, #fafdff, #eff5ff);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow);
+        padding: 18px;
+        display: grid;
+        place-items: center;
+        gap: 14px;
+      }
+
+      .preview-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        color: #607080;
+        font-size: 0.84rem;
+        font-weight: 600;
+      }
+
+      .lan-url {
+        margin: 0;
+        font-size: 0.8rem;
+        color: #436184;
+        background: #edf4ff;
+        border: 1px solid #d5e5ff;
+        border-radius: 10px;
+        padding: 7px 10px;
+      }
+
+      .phone-shell {
+        width: min(320px, 100%);
+        background: linear-gradient(180deg, #1f2530, #0f131a);
+        border: 2px solid #0d1118;
+        border-radius: 44px;
+        padding: 11px;
+        box-shadow: 0 24px 45px rgba(15, 23, 42, 0.28);
+        position: relative;
+      }
+
+      .phone-notch {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 39%;
+        height: 25px;
+        background: #0a0a0d;
+        border-radius: 0 0 14px 14px;
+        z-index: 3;
+      }
+
+      .phone-screen {
+        border-radius: 34px;
+        overflow: hidden;
+        aspect-ratio: 390 / 844;
+        background: #000;
+      }
+
+      .phone-screen img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: contain;
+        object-position: top;
+        background: #000;
+      }
+
+      .phone-home {
+        position: absolute;
+        bottom: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 38%;
+        height: 5px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.9);
+        z-index: 3;
+      }
+
+      section {
+        padding: 36px 0;
+      }
+
+      .section-title {
+        margin: 0 0 12px;
+        font-size: clamp(1.5rem, 3vw, 2.2rem);
+        line-height: 1.18;
+      }
+
+      .section-intro {
+        margin: 0 0 24px;
+        max-width: 66ch;
+        color: var(--ink-soft);
+      }
+
+      .grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .feature-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .card {
+        background: #fff;
+        border: 1px solid #f1e1ce;
+        border-radius: var(--radius-lg);
+        padding: 18px;
+      }
+
+      .card h3 {
+        margin: 6px 0 8px;
+        font-size: 1.05rem;
+      }
+
+      .card p {
+        margin: 0;
+        color: var(--ink-soft);
+        font-size: 0.93rem;
+      }
+
+      .icon {
+        font-size: 1.3rem;
+      }
+
+      .steps {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .step-num {
+        width: 30px;
+        height: 30px;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        background: #ffe8d2;
+        color: var(--brand-deep);
+        font-weight: 700;
+        margin-bottom: 10px;
+      }
+
+      .scene-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .scene {
+        border: 1px solid #e6ddd2;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: #fff;
+        font-size: 0.9rem;
+      }
+
+      .reveal {
+        opacity: 0;
+        transform: translateY(18px) scale(0.98);
+        transition: opacity 0.5s ease, transform 0.5s ease;
+      }
+
+      .reveal.show {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      .reveal.hide-up {
+        opacity: 0;
+        transform: translateY(-18px) scale(0.98);
+      }
+
+      .reveal.hide-down {
+        opacity: 0;
+        transform: translateY(18px) scale(0.98);
+      }
+
+      footer {
+        border-top: 1px solid #f0dbc3;
+        margin-top: 44px;
+        padding: 26px 0 40px;
+        color: #77818f;
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 940px) {
+        .hero {
+          grid-template-columns: 1fr;
+          gap: 24px;
+          padding-top: 28px;
+        }
+
+        .feature-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .steps {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .nav-links {
+          display: none;
+        }
+
+        .feature-grid {
+          grid-template-columns: 1fr;
+        }
+
+        h1 {
+          font-size: clamp(1.8rem, 8vw, 2.6rem);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shape one"></div>
+    <div class="shape two"></div>
+
+    <div class="container">
+      <nav>
+        <div class="logo">
+          <div class="logo-mark" aria-hidden="true"></div>
+          <span>AirShare</span>
+        </div>
+        <div class="nav-links">
+          <a href="#about">關於</a>
+          <a href="#features">特色</a>
+          <a href="#how">使用方式</a>
+          <a href="#scenes">情境</a>
+        </div>
+      </nav>
+
+      <header class="hero reveal">
+        <div>
+          <span class="eyebrow">iPhone 相簿與影片區網存取 App</span>
+          <h1>讓區域網路上的電腦，直接抓取 iPhone 照片與影片</h1>
+          <p>
+            在 iPhone 開啟 AirShare 並授權相簿後，App 會顯示 LAN URL。電腦只要在同一個區域網路用瀏覽器連進來，就能瀏覽並下載照片與影片。
+          </p>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="#features">看重點特色</a>
+            <a class="btn btn-secondary" href="#how">看使用流程</a>
+            <a
+              class="btn btn-store"
+              href="https://apps.apple.com/tw/app/airshare-wifi-photo-download/id6758705202"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img src="appstore-icon.svg" alt="" aria-hidden="true" />
+              <span class="store-copy">
+                <small>立即下載</small>
+                <strong>App Store</strong>
+              </span>
+            </a>
+          </div>
+        </div>
+
+        <div class="app-panel">
+          <div class="preview-head">
+            <span>AirShare App 實機畫面</span>
+            <span>iPhone Mockup</span>
+          </div>
+          <div class="phone-shell">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+              <img src="IMG_3156.PNG" alt="AirShare iPhone 截圖畫面" loading="lazy" />
+            </div>
+            <div class="phone-home"></div>
+          </div>
+          <p class="lan-url">提示：LAN URL 會顯示在 App 畫面中供電腦連線。</p>
+        </div>
+      </header>
+
+      <section id="about" class="reveal">
+        <h2 class="section-title">為什麼做 AirShare？</h2>
+        <p class="section-intro">
+          你的照片與影片都在 iPhone 裡，但常常需要在電腦上快速取用。AirShare 把 iPhone 變成區網內可存取的媒體來源，並透過清楚的 LAN URL 讓電腦快速連上抓取。
+        </p>
+      </section>
+
+      <section id="features" class="reveal">
+        <h2 class="section-title">你會感受到的 4 個重點</h2>
+        <div class="grid feature-grid">
+          <article class="card">
+            <div class="icon">🔓</div>
+            <h3>需要開啟相簿權限</h3>
+            <p>第一次使用先授權 AirShare 讀取相簿，才可提供照片與影片清單。</p>
+          </article>
+          <article class="card">
+            <div class="icon">🌐</div>
+            <h3>顯示 LAN URL</h3>
+            <p>App 直接顯示可連線網址，電腦端輸入後即可進入下載頁面。</p>
+          </article>
+          <article class="card">
+            <div class="icon">🎬</div>
+            <h3>照片與影片都可下載</h3>
+            <p>除了照片，影片檔也能在同一個頁面被電腦端直接抓取下載。</p>
+          </article>
+          <article class="card">
+            <div class="icon">💻</div>
+            <h3>同網路瀏覽器直連</h3>
+            <p>iPhone 與電腦在同一區網時，不用裝額外工具，瀏覽器就能用。</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="how" class="reveal">
+        <h2 class="section-title">3 步驟就能開始使用</h2>
+        <div class="grid steps">
+          <article class="card">
+            <div class="step-num">1</div>
+            <h3>在 iPhone 開啟 AirShare</h3>
+            <p>開啟 App 並允許相簿權限，啟用照片與影片的分享服務。</p>
+          </article>
+          <article class="card">
+            <div class="step-num">2</div>
+            <h3>查看並輸入 LAN URL</h3>
+            <p>在同網路電腦輸入 AirShare 顯示的 LAN URL，打開媒體列表頁。</p>
+          </article>
+          <article class="card">
+            <div class="step-num">3</div>
+            <h3>挑選並下載媒體</h3>
+            <p>在電腦端勾選需要的照片或影片，直接抓取到本機資料夾。</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="scenes" class="reveal">
+        <h2 class="section-title">AirShare 很適合這些情境</h2>
+        <p class="section-intro">重點是讓 iPhone 裡的照片與影片，在電腦端可以立即被抓取使用。</p>
+        <div class="scene-wrap">
+          <span class="scene">活動拍攝後快速拉照片到筆電</span>
+          <span class="scene">不接線備份 iPhone 相簿</span>
+          <span class="scene">短影片拍完立即拉到電腦剪輯</span>
+          <span class="scene">辦公室內網即時取圖</span>
+          <span class="scene">教學或簡報前快速整理手機照片</span>
+        </div>
+      </section>
+
+      <footer>
+        AirShare © 2026
+      </footer>
+    </div>
+
+    <script>
+      const items = document.querySelectorAll('.reveal');
+      let lastY = window.scrollY;
+      let scrollDirection = 'down';
+
+      window.addEventListener(
+        'scroll',
+        () => {
+          const currentY = window.scrollY;
+          scrollDirection = currentY > lastY ? 'down' : 'up';
+          lastY = currentY;
+        },
+        { passive: true }
+      );
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            const el = entry.target;
+            if (entry.isIntersecting) {
+              el.classList.remove('hide-up', 'hide-down');
+              el.classList.add('show');
+            } else {
+              el.classList.remove('show');
+              el.classList.add(scrollDirection === 'up' ? 'hide-up' : 'hide-down');
+            }
+          });
+        },
+        { threshold: 0.2 }
+      );
+
+      items.forEach((el, index) => {
+        el.style.transitionDelay = `${index * 80}ms`;
+        el.classList.add('hide-down');
+        observer.observe(el);
+      });
+    </script>
+  </body>
+</html>
