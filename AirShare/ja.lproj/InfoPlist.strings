@@ -1,0 +1,3 @@
+"NSPhotoLibraryUsageDescription" = "このアプリは、同じローカルネットワーク上の端末で写真や動画を閲覧・ダウンロードできるようにするため、写真ライブラリへのアクセスが必要です。";
+"NSPhotoLibraryAddUsageDescription" = "このアプリは、メディアファイルの保存または書き出しのために写真ライブラリへのアクセスが必要です。";
+"NSLocalNetworkUsageDescription" = "このアプリは、同じ Wi-Fi 上でファイル共有や端末接続を行うため、ローカルネットワークへのアクセスが必要です。";
