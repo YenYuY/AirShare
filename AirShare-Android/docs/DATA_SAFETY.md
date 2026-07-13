@@ -11,7 +11,7 @@ This is a Play Console working sheet, not a substitute for checking the final AA
 - No analytics, advertising, attribution, telemetry, or remote crash-reporting SDK.
 - Photos, videos, thumbnails, and metadata are accessed and processed on the Android device.
 - A transfer is a specific user-initiated action between the Android device and a browser on the same local network.
-- Transfer content travels over HTTPS and is unreadable by the developer or any intermediary; only the sending device and recipient browser hold the active connection keys.
+- Transfer content travels directly over local HTTP. It is not sent to the developer, but it is not encrypted in transit and may be observable by other parties on an untrusted network.
 - The sharing token is random, session-scoped, processed locally, not sent to the developer, and discarded when sharing stops.
 - Local IP addresses and connection state are processed locally and are not sent to the developer.
 
@@ -26,7 +26,7 @@ Suggested answer: **No**.
 Reasoning under Google's definitions:
 
 - Media-library access that stays on the device is on-device processing and is not collected.
-- Direct transfer content is encrypted so that the developer and intermediaries cannot read it.
+- Direct transfer content is a user-initiated transfer to the recipient and is not sent to the developer.
 - A download is initiated by the user for an expected recipient and is not disclosed as developer sharing.
 - No SDK or developer endpoint receives data from the app.
 
@@ -34,7 +34,7 @@ This conclusion changes if the developer can decrypt content, operates a relay, 
 
 ### Security practices
 
-If Play Console presents an encryption-in-transit question, answer **Yes** only after verifying that every transfer path in the final release uses HTTPS and no cleartext fallback exists.
+If Play Console presents an encryption-in-transit question for this transfer path, answer **No** while the release uses local cleartext HTTP.
 
 ### Account creation and deletion
 
@@ -46,8 +46,8 @@ If Play Console presents an encryption-in-transit question, answer **Yes** only 
 
 | Play data type | Suggested status | Basis |
 | --- | --- | --- |
-| Photos | Not collected or shared | Accessed locally; encrypted user-initiated transfer; developer cannot read it. |
-| Videos | Not collected or shared | Accessed locally; encrypted user-initiated transfer; developer cannot read it. |
+| Photos | Not collected or shared | Accessed locally and transferred only by the user's action to the intended recipient; not sent to the developer. |
+| Videos | Not collected or shared | Accessed locally and transferred only by the user's action to the intended recipient; not sent to the developer. |
 | Files and documents | Not collected or shared | Not part of the current product; reassess if arbitrary-file sharing is added. |
 | Device or other IDs | Not collected or shared | No advertising ID, persistent device identifier, or developer telemetry. |
 | App interactions | Not collected or shared | No analytics SDK or backend. |
@@ -61,7 +61,7 @@ If Play Console presents an encryption-in-transit question, answer **Yes** only 
 - [ ] Inspect the merged manifest for unexpected permissions, especially `AD_ID`, location, contacts, `QUERY_ALL_PACKAGES`, or `MANAGE_EXTERNAL_STORAGE`.
 - [ ] Inspect dependencies and SDK manifests for analytics, ads, attribution, diagnostics, or network collection.
 - [ ] Capture network traffic during launch, permission handling, an idle session, browsing, download, stop, and error flows. Confirm there is no developer or third-party endpoint.
-- [ ] Confirm HTTPS is used for thumbnails and original-media downloads as well as the initial page.
+- [ ] Confirm the initial page, thumbnails, and original-media downloads remain restricted by the active session token.
 - [ ] Confirm the temporary token and local peer addresses are not written to remote logs.
 - [ ] Confirm the privacy policy, in-app disclosure, permission declaration, and Data Safety answers describe the same release behavior.
 - [ ] Submit the completed Data Safety form for every closed, open, or production track. An internal-test-only app is exempt until it moves to one of those tracks.

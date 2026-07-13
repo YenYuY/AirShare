@@ -26,17 +26,17 @@ Labels:
 - [ ] Recheck the [official target API table](https://developer.android.com/google/play/requirements/target-sdk) immediately before submission. As of 2026-07-11, the exact published minimum for new phone apps is API 35; an API 36 enforcement date is not yet listed.
 - [ ] `[VERIFY]` Confirm 64-bit support. If the AAB contains any native 32-bit library, include its corresponding 64-bit ABI.
 - [ ] `[VERIFY]` Confirm 16 KB page-size compatibility in Play Console. All new apps targeting Android 15+ are in scope.
-- [ ] Run the release build with minification enabled and verify that QR, TLS certificate generation, media browsing, and localization still work.
+- [ ] Run the release build with minification enabled and verify that QR, session-token generation, media browsing, and localization still work.
 
 ## Network and security
 
-- [ ] Confirm all transfers use HTTPS. Do not enable cleartext HTTP in the release network security configuration.
+- [ ] Confirm the UI and privacy disclosures clearly state that local HTTP transfers are not encrypted and require a trusted private Wi-Fi network.
 - [ ] Confirm the sharing token is random, scoped to one active session, and invalidated when sharing stops or the app process ends.
 - [ ] Confirm no developer-operated backend, relay, analytics endpoint, ad endpoint, or crash-reporting endpoint receives user data.
 - [ ] Test on an untrusted-LAN model: another device without the active token must not browse or download media.
 - [ ] Make sharing state unmistakable and let the user stop the server immediately.
 - [ ] Test screen lock, app backgrounding, network changes, Wi-Fi loss, process death, and token expiry.
-- [ ] Current target API 35: test LAN TCP, HTTPS, and service discovery with the normal `INTERNET` permission.
+- [ ] Current target API 35: test LAN TCP, HTTP, and service discovery with the normal `INTERNET` permission.
 - [ ] Android 17 / target API 37 migration: before raising `targetSdk` to 37, declare and request `ACCESS_LOCAL_NETWORK` at runtime at the moment sharing starts, handle denial/revocation, and retest outgoing and incoming TCP plus UDP/mDNS. A system-mediated NSD picker may avoid broad LAN permission for a single selected service.
 
 ## Media permissions
@@ -69,7 +69,7 @@ Labels:
 - [ ] `[PLAY CONSOLE]` Complete the content-rating questionnaire accurately.
 - [ ] `[PLAY CONSOLE]` Select the target audience. Avoid selecting children unless the app and all SDKs are intentionally designed to comply with the Families policy.
 - [ ] `[PLAY CONSOLE]` Complete App access. AirShare has no login or paywall; add reviewer instructions explaining the same-Wi-Fi browser workflow.
-- [ ] Give reviewers reusable English instructions: grant media access, start sharing, open the displayed HTTPS URL or QR code from another device on the same LAN, browse media, download an item, then stop sharing.
+- [ ] Give reviewers reusable English instructions: grant media access, start sharing, open the displayed HTTP URL or QR code from another device on the same trusted LAN, browse media, download an item, then stop sharing.
 - [ ] If review requires a QR code or other non-alphanumeric resource, provide it through a static URL that remains valid throughout review.
 - [ ] Ensure the core workflow is not dependent on a particular country, account, one-time password, or developer-controlled device.
 - [ ] `[PLAY CONSOLE]` Choose the App category and relevant tags.

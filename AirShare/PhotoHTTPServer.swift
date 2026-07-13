@@ -105,6 +105,7 @@ final class PhotoHTTPServer {
         let components = fullPath.split(separator: "?", maxSplits: 1).map(String.init)
         let path = components.first ?? "/"
         let query = components.count > 1 ? components[1] : ""
+        let language = AppLanguageManager.shared.currentLanguage()
 
         // Extract headers (for Range support)
         let headerLines = raw.components(separatedBy: "\r\n").dropFirst()
@@ -128,9 +129,7 @@ final class PhotoHTTPServer {
         let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
         let authorized = (status == .authorized || status == .limited)
         if !authorized {
-            let html = """
-            <!doctype html><html><head><meta charset=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><title>AirShare - Authorization Required</title><style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;padding:24px}</style></head><body><h2>需要相簿授權</h2><p>請在 iPhone 上開啟 AirShare 並允許「照片」權限後再重新整理此頁面。</p></body></html>
-            """
+            let html = HTMLBuilder.authorizationRequiredHTML(language: language)
             let body = Data(html.utf8)
             let data = httpResponse(status: 403, headers: [
                 "Content-Type": "text/html; charset=utf-8",
@@ -142,7 +141,7 @@ final class PhotoHTTPServer {
 
         if path == "/" {
             let pageParam = parseQuery(query)["page"].flatMap { Int($0) } ?? 1
-            let data = serveIndex(page: max(1, pageParam))
+            let data = serveIndex(page: max(1, pageParam), language: language)
             send(data, on: connection) { connection.cancel() }
             return
         } else if path.hasPrefix("/thumbnail/") {
@@ -162,7 +161,7 @@ final class PhotoHTTPServer {
     }
 
     // MARK: - Handlers
-    private func serveIndex(page: Int, pageSize: Int = 20) -> Data {
+    private func serveIndex(page: Int, language: AppLanguage, pageSize: Int = 20) -> Data {
         let allAssets = PhotoLibraryService.shared.fetchAllAssets()
         let total = allAssets.count
         let pageCount = max(1, Int(ceil(Double(total) / Double(pageSize))))
@@ -171,7 +170,7 @@ final class PhotoHTTPServer {
         let end = min(start + pageSize, total)
         let pageSlice = (start < end) ? Array(allAssets[start..<end]) : []
         let infos = pageSlice.map { PhotoLibraryService.shared.assetInfo(for: $0) }
-        let html = HTMLBuilder.indexHTML(for: infos, page: current, pageCount: pageCount)
+        let html = HTMLBuilder.indexHTML(for: infos, page: current, pageCount: pageCount, language: language)
         let body = Data(html.utf8)
         return httpResponse(status: 200, headers: [
             "Content-Type": "text/html; charset=utf-8",
@@ -203,9 +202,15 @@ final class PhotoHTTPServer {
 
         // Prepare metadata
         let res = PHAssetResource.assetResources(for: asset).first
-        let filename = res?.originalFilename ?? "file"
-        let uti = res?.uniformTypeIdentifier
+        let info = PhotoLibraryService.shared.assetInfo(for: asset)
+        let filename = info.filename
+        let uti = info.uti
         let mime = mimeType(fromUTI: uti) ?? "application/octet-stream"
+
+        if info.usesCompatibleJPEGDownload {
+            sendCompatibleJPEG(asset: asset, filename: info.downloadFilename, on: connection)
+            return
+        }
 
         // Range parsing (single range only)
         let rangeHeader = requestHeaders["range"] // e.g., bytes=0- or bytes=1000-2000
@@ -255,6 +260,30 @@ final class PhotoHTTPServer {
             let endChunk = Data("0\r\n\r\n".utf8)
             self.send(endChunk, on: connection) {
                 connection.cancel()
+            }
+        }
+    }
+
+    private func sendCompatibleJPEG(asset: PHAsset, filename: String, on connection: NWConnection) {
+        Task {
+            do {
+                let jpeg = try await PhotoLibraryService.shared.requestCompatibleJPEGData(for: asset)
+                let encodedName = filename.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? filename
+                let response = httpResponse(status: 200, headers: [
+                    "Content-Type": "image/jpeg",
+                    "Content-Length": String(jpeg.count),
+                    "Content-Disposition": "attachment; filename=\"\(filename)\"; filename*=UTF-8''\(encodedName)",
+                    "X-Content-Type-Options": "nosniff",
+                    "Cache-Control": "private, no-store"
+                ], body: jpeg)
+                send(response, on: connection) { connection.cancel() }
+            } catch {
+                let response = httpResponse(
+                    status: 500,
+                    headers: ["Content-Type": "text/plain; charset=utf-8"],
+                    body: Data("JPEG Conversion Error".utf8)
+                )
+                send(response, on: connection) { connection.cancel() }
             }
         }
     }
@@ -367,4 +396,3 @@ final class PhotoHTTPServer {
         return dict
     }
 }
-

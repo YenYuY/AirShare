@@ -49,7 +49,7 @@ AirShare does not use your information for advertising, analytics, profiling, sa
 
 ## Transfers and disclosure
 
-Transfers are initiated by the user and occur directly between the Android device and the browser over encrypted HTTPS on the local network. There is no developer-operated relay or storage service. The developer and other intermediaries do not hold the session keys needed to decrypt the transfer.
+Transfers are initiated by the user and occur directly between the Android device and the browser over HTTP on the local network. There is no developer-operated relay or storage service. Local HTTP traffic is not encrypted and may be observable by other parties on an untrusted or compromised network.
 
 Anyone who has the active link, QR code, and access to the same local network may be able to use the sharing session. Only start AirShare on a network you trust, share the QR code or link only with the intended recipient, and stop sharing when you are finished.
 
@@ -71,7 +71,7 @@ If you deny or limit access, AirShare will show only the media Android allows it
 
 ## Security
 
-AirShare uses encrypted HTTPS connections for local transfers, a random session token, and a temporary sharing service. Cleartext HTTP is disabled. No method of electronic transmission or storage is completely secure, so you should use AirShare only on a trusted local network and end the session promptly after use.
+AirShare uses a random session token and a temporary local sharing service. The token limits access to people who have the complete link, but it does not encrypt HTTP traffic. Use AirShare only on a trusted private network, share the link only with the intended recipient, and end the session promptly after use.
 
 ## Children's privacy
 

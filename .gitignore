@@ -1,0 +1,9 @@
+.DS_Store
+xcuserdata/
+*.xcuserstate
+DerivedData/
+.gradle/
+local.properties
+AirShare-Android/keystore.properties
+AirShare-Android/app/build/
+AirShare-Android/build/

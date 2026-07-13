@@ -587,7 +587,7 @@ private fun ActiveContent(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        StatusChip(R.drawable.ic_lock, text.encryptedLabel, Modifier.weight(1f))
+        StatusChip(R.drawable.ic_lock, text.tokenProtectedLabel, Modifier.weight(1f))
         StatusChip(R.drawable.ic_wifi, text.localOnlyLabel, Modifier.weight(1f))
     }
     if (hasPartialAccess) {
@@ -702,16 +702,6 @@ private fun SessionControls(
         Text(
             text = text.keepAwakeHint,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = text.certificateHint,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = "${text.fingerprintLabel}: ${session.certificateFingerprint}",
-            style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         OutlinedButton(

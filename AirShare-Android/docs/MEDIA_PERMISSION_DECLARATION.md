@@ -15,7 +15,7 @@ AirShare must not request `MANAGE_EXTERNAL_STORAGE`.
 
 ## Core-function statement
 
-AirShare is a local photo and video sharing utility. Its primary user experience is a temporary HTTPS sharing session that generates a browser-based view of the media library Android has authorized. An authorized browser on the same Wi-Fi network can browse thumbnails and download original media while the user keeps the session active.
+AirShare is a local photo and video sharing utility. Its primary user experience is a temporary HTTP sharing session that generates a browser-based view of the media library Android has authorized. A browser with the temporary session link on the same trusted Wi-Fi network can browse thumbnails and download original media while the user keeps the session active.
 
 Persistent or frequent media access is used only to:
 
@@ -30,7 +30,7 @@ The app does not upload the library to a developer server, run analytics on medi
 
 ### Concise justification
 
-> AirShare's core purpose is repeated local browsing and sharing of the user's photo/video library. During an active session, the app must enumerate authorized media, render thumbnails, and serve selected originals over encrypted local HTTPS. Media is never uploaded to the developer, used for ads, or accessed for unrelated purposes.
+> AirShare's core purpose is repeated local browsing and sharing of the user's photo/video library. During an active session, the app must enumerate authorized media, render thumbnails, and serve selected originals over a token-protected local HTTP session on a trusted Wi-Fi network. Media is never uploaded to the developer, used for ads, or accessed for unrelated purposes.
 
 ### Why a system picker is not sufficient for the released broad-access experience
 
@@ -38,7 +38,7 @@ The app does not upload the library to a developer server, run analytics on medi
 
 ### Data handling
 
-> Access is foreground and user initiated. Media and thumbnails are processed on the Android device and delivered directly to the authorized browser over HTTPS using a temporary session token. AirShare has no account, analytics, advertising, cloud upload, developer backend, or remote logging. The developer cannot access transfer content.
+> Access is foreground and user initiated. Media and thumbnails are processed on the Android device and delivered directly to the intended browser over local HTTP using a temporary session token. The local transfer is not encrypted. AirShare has no account, analytics, advertising, cloud upload, developer backend, or remote logging. The developer does not receive transfer content.
 
 ## Important review risk
 
@@ -65,7 +65,7 @@ The video supplied to Play Console should be short, narrated or captioned in Eng
 1. Launch AirShare and show the explanation of why photo/video access is needed.
 2. Grant full photo and video access through the Android system dialog.
 3. Show the Android ready state and the scope of media access that was granted.
-4. Start a sharing session and show its temporary QR code or HTTPS URL.
+4. Start a sharing session and show its temporary QR code or HTTP URL.
 5. From a second device on the same Wi-Fi network, open the generated browser gallery and browse multiple pages containing both media types.
 6. Download one original photo and one original video.
 7. Return to the Android device and stop sharing; show that the session is no longer available.

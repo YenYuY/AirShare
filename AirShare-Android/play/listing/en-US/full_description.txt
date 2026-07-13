@@ -1,13 +1,13 @@
 Move photos and videos from your Android phone to any computer on the same Wi-Fi network.
 
-AirShare turns your phone into a temporary, encrypted local sharing service. Start sharing, scan the QR code or open the displayed address in a browser, then browse thumbnails and download original photos or videos.
+AirShare turns your phone into a temporary local sharing service. Start sharing, scan the QR code or open the displayed address in a browser, then browse thumbnails and download original photos or videos.
 
 Why AirShare
 
 • No account or sign-in
 • No cloud upload
 • No desktop app to install
-• Encrypted HTTPS transfer on your local network
+• Temporary token-protected link on your local network
 • Temporary session token
 • Clear controls to start and stop sharing
 • Traditional Chinese, English, and Japanese
@@ -17,3 +17,4 @@ AirShare has no analytics and no developer-operated backend. Your media travels 
 The secure certificate is created temporarily on your phone, so your browser may show a local certificate warning. Compare the SHA-256 fingerprint shown by AirShare before continuing.
 
 Photo and video access is used to display and share the media library while you run a sharing session. Only people who have the active session link and access to the same local network can connect. Use AirShare on a network you trust and stop sharing when you are finished.
+Local HTTP transfers are not encrypted. Use AirShare only on a trusted private Wi-Fi network, share the temporary link only with the intended recipient, and stop sharing when finished.

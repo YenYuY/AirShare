@@ -15,7 +15,7 @@ import com.yenyuyyy.airshare.platform.AndroidPermissionReader
 import com.yenyuyyy.airshare.platform.MediaPermissionAccess
 import com.yenyuyyy.airshare.platform.WifiIpv4Monitor
 import com.yenyuyyy.airshare.platform.WifiIpv4State
-import com.yenyuyyy.airshare.server.AirShareTlsServer
+import com.yenyuyyy.airshare.server.AirShareHttpServer
 import java.net.InetAddress
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -140,7 +140,6 @@ class AirShareViewModel(application: Application) : AndroidViewModel(application
                         dispatch(
                             AirShareEvent.ServerStarted(
                                 url = started.url,
-                                certificateFingerprint = started.fingerprint,
                             ),
                         )
                     } catch (_: ServerStartCancelledException) {
@@ -173,9 +172,9 @@ class AirShareViewModel(application: Application) : AndroidViewModel(application
         return serverLifecycle.start(
             generation = generation,
             create = {
-                AirShareTlsServer(
+                AirShareHttpServer(
                     catalog = mediaCatalog,
-                    accessToken = AirShareTlsServer.generateAccessToken(),
+                    accessToken = AirShareHttpServer.generateAccessToken(),
                     strings = webStrings,
                     bindAddress = bindAddress,
                 )
@@ -184,7 +183,6 @@ class AirShareViewModel(application: Application) : AndroidViewModel(application
                 val endpoint = server.start()
                 StartedSession(
                     url = (endpoint.boundSessionUrl ?: endpoint.sessionUrl(bindAddress)).toString(),
-                    fingerprint = endpoint.certificateSha256,
                 )
             },
         )
@@ -197,6 +195,5 @@ class AirShareViewModel(application: Application) : AndroidViewModel(application
 
     private data class StartedSession(
         val url: String,
-        val fingerprint: String,
     )
 }

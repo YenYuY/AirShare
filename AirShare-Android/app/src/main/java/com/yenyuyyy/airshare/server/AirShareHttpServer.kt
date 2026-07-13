@@ -4,12 +4,12 @@ import java.io.Closeable
 import java.io.IOException
 import java.net.InetAddress
 import java.net.InetSocketAddress
+import java.net.ServerSocket
+import java.net.Socket
 import java.net.SocketException
 import java.net.URI
 import java.net.URLEncoder
-import java.security.MessageDigest
 import java.security.SecureRandom
-import java.security.cert.X509Certificate
 import java.util.Base64
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.ConcurrentHashMap
@@ -17,17 +17,11 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
-import javax.net.ssl.SSLException
-import javax.net.ssl.SSLServerSocket
-import javax.net.ssl.SSLSocket
 
 class ServerEndpoint internal constructor(
     val port: Int,
-    val certificate: X509Certificate,
-    val certificateSha256: String,
     private val accessToken: String,
     val bindAddress: InetAddress?,
-    private val certifiedIpAddresses: Set<String>,
 ) {
     val boundSessionUrl: URI?
         get() = bindAddress
@@ -36,19 +30,16 @@ class ServerEndpoint internal constructor(
 
     fun sessionUrl(advertisedAddress: InetAddress): URI {
         val host = requireNotNull(advertisedAddress.hostAddress).substringBefore('%')
-        require(host in certifiedIpAddresses) {
-            "The advertised address is not present in the ephemeral certificate"
-        }
         val authorityHost = if (':' in host) "[$host]" else host
         val encodedToken = URLEncoder.encode(accessToken, Charsets.UTF_8.name()).replace("+", "%20")
-        return URI.create("https://$authorityHost:$port/?token=$encodedToken")
+        return URI.create("http://$authorityHost:$port/?token=$encodedToken")
     }
 
     override fun toString(): String =
-        "ServerEndpoint(port=$port, certificateSha256=$certificateSha256, bindAddress=$bindAddress)"
+        "ServerEndpoint(port=$port, bindAddress=$bindAddress)"
 }
 
-class AirShareTlsServer(
+class AirShareHttpServer(
     catalog: MediaCatalog,
     private val accessToken: String,
     strings: WebStrings = EnglishWebStrings,
@@ -60,8 +51,8 @@ class AirShareTlsServer(
     private val maxConcurrentClients: Int = DEFAULT_MAX_CONCURRENT_CLIENTS,
 ) : Closeable {
     private val handler = MediaHttpHandler(catalog, accessToken, strings)
-    private val activeSockets = ConcurrentHashMap.newKeySet<SSLSocket>()
-    @Volatile private var serverSocket: SSLServerSocket? = null
+    private val activeSockets = ConcurrentHashMap.newKeySet<Socket>()
+    @Volatile private var serverSocket: ServerSocket? = null
     @Volatile private var acceptThread: Thread? = null
     @Volatile private var workers: ExecutorService? = null
 
@@ -76,14 +67,9 @@ class AirShareTlsServer(
     @Synchronized
     fun start(): ServerEndpoint {
         check(serverSocket == null) { "Server is already running" }
-        val tls = EphemeralTlsFactory.create(bindAddress)
-        val socket = tls.context.serverSocketFactory.createServerSocket() as SSLServerSocket
+        val socket = ServerSocket()
         try {
             socket.reuseAddress = true
-            socket.needClientAuth = false
-            socket.enabledProtocols = socket.supportedProtocols
-                .filter { it == "TLSv1.3" || it == "TLSv1.2" }
-                .toTypedArray()
             socket.bind(InetSocketAddress(bindAddress, port))
             val executor = ThreadPoolExecutor(
                 maxConcurrentClients,
@@ -91,22 +77,19 @@ class AirShareTlsServer(
                 0L,
                 TimeUnit.MILLISECONDS,
                 ArrayBlockingQueue<Runnable>(maxConcurrentClients),
-                { task -> Thread(task, "AirShare-TLS-worker").apply { isDaemon = true } },
+                { task -> Thread(task, "AirShare-HTTP-worker").apply { isDaemon = true } },
                 ThreadPoolExecutor.AbortPolicy(),
             )
             serverSocket = socket
             workers = executor
-            acceptThread = Thread({ acceptConnections(socket, executor) }, "AirShare-TLS-accept").apply {
+            acceptThread = Thread({ acceptConnections(socket, executor) }, "AirShare-HTTP-accept").apply {
                 isDaemon = true
                 start()
             }
             return ServerEndpoint(
                 port = socket.localPort,
-                certificate = tls.certificate,
-                certificateSha256 = sha256Fingerprint(tls.certificate),
                 accessToken = accessToken,
                 bindAddress = bindAddress,
-                certifiedIpAddresses = tls.certifiedIpAddresses,
             )
         } catch (error: Exception) {
             runCatching { socket.close() }
@@ -118,10 +101,10 @@ class AirShareTlsServer(
         }
     }
 
-    private fun acceptConnections(socket: SSLServerSocket, executor: ExecutorService) {
+    private fun acceptConnections(socket: ServerSocket, executor: ExecutorService) {
         while (!socket.isClosed) {
             try {
-                val client = socket.accept() as SSLSocket
+                val client = socket.accept()
                 activeSockets += client
                 try {
                     executor.execute { handleClient(client) }
@@ -130,32 +113,31 @@ class AirShareTlsServer(
                     runCatching { client.close() }
                 }
             } catch (_: SocketException) {
-                if (!socket.isClosed) continue
-            } catch (_: SSLException) {
-                // A failed TLS handshake is isolated to its connection.
+                if (socket.isClosed) break
             } catch (_: IOException) {
                 if (socket.isClosed) break
             }
         }
     }
 
-    private fun handleClient(socket: SSLSocket) {
+    private fun handleClient(socket: Socket) {
         try {
             socket.use { client ->
                 client.soTimeout = socketReadTimeoutMillis
-                client.startHandshake()
-                val response = when (
-                    val result = BoundedHttpRequestReader(
-                        maxHeaderBytes = maxHeaderBytes,
-                        maxReadDurationMillis = maxHeaderReadDurationMillis,
-                    ).read(client.inputStream)
-                ) {
+                val result = BoundedHttpRequestReader(
+                    maxHeaderBytes = maxHeaderBytes,
+                    maxReadDurationMillis = maxHeaderReadDurationMillis,
+                ).read(client.inputStream)
+                val response = when (result) {
                     is RequestReadResult.Success -> runCatching { handler.handle(result.request) }
                         .getOrElse { internalServerError() }
                     is RequestReadResult.Failure -> textError(result.statusCode, result.reasonPhrase, result.message)
                     RequestReadResult.Closed -> return
                 }
                 HttpResponseWriter.write(response, client.outputStream)
+                if (result is RequestReadResult.Failure) {
+                    drainBufferedInput(client)
+                }
             }
         } catch (_: Exception) {
             // The peer may disconnect at any point; closing the socket is sufficient.
@@ -179,6 +161,17 @@ class AirShareTlsServer(
 
     override fun close() = stop()
 
+    private fun drainBufferedInput(client: Socket) {
+        val input = client.inputStream
+        val buffer = ByteArray(4 * 1024)
+        var remaining = 64 * 1024
+        while (remaining > 0 && input.available() > 0) {
+            val read = input.read(buffer, 0, minOf(buffer.size, remaining))
+            if (read <= 0) break
+            remaining -= read
+        }
+    }
+
     private fun textError(statusCode: Int, reasonPhrase: String, message: String): HttpResponse {
         val bytes = message.toByteArray(Charsets.UTF_8)
         return HttpResponse(
@@ -195,13 +188,8 @@ class AirShareTlsServer(
     private fun internalServerError(): HttpResponse =
         textError(500, "Internal Server Error", "Internal Server Error")
 
-    private fun sha256Fingerprint(certificate: X509Certificate): String =
-        MessageDigest.getInstance("SHA-256")
-            .digest(certificate.encoded)
-            .joinToString(":") { "%02X".format(it.toInt() and 0xff) }
-
     companion object {
-        const val DEFAULT_PORT = 8443
+        const val DEFAULT_PORT = 8080
         const val DEFAULT_MAX_HEADER_BYTES = 16 * 1024
         const val DEFAULT_SOCKET_TIMEOUT_MILLIS = 10_000
         const val DEFAULT_MAX_HEADER_READ_DURATION_MILLIS = 10_000

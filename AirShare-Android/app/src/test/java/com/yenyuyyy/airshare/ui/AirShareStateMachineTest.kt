@@ -40,8 +40,7 @@ class AirShareStateMachineTest {
             mediaAccess = MediaAccess.FULL,
             network = NetworkStatus(onWifi = true, address = "192.168.1.24"),
             shareStatus = ShareStatus.Active(
-                url = "https://192.168.1.24:8443/?token=test",
-                certificateFingerprint = "AA:BB",
+                url = "http://192.168.1.24:8080/?token=test",
             ),
         )
 
@@ -61,8 +60,7 @@ class AirShareStateMachineTest {
             mediaAccess = MediaAccess.FULL,
             network = NetworkStatus(onWifi = true, address = "192.168.1.24"),
             shareStatus = ShareStatus.Active(
-                url = "https://192.168.1.24:8443/?token=test",
-                certificateFingerprint = "AA:BB",
+                url = "http://192.168.1.24:8080/?token=test",
             ),
         )
 
@@ -84,8 +82,7 @@ class AirShareStateMachineTest {
             mediaAccess = MediaAccess.PARTIAL,
             network = NetworkStatus(onWifi = true, address = "192.168.1.24"),
             shareStatus = ShareStatus.Active(
-                url = "https://192.168.1.24:8443/?token=test",
-                certificateFingerprint = "AA:BB",
+                url = "http://192.168.1.24:8080/?token=test",
             ),
         )
 
@@ -123,8 +120,7 @@ class AirShareStateMachineTest {
         val transition = AirShareStateMachine.reduce(
             idle,
             AirShareEvent.ServerStarted(
-                url = "https://192.168.1.24:8443/?token=late",
-                certificateFingerprint = "AA:BB",
+                url = "http://192.168.1.24:8080/?token=late",
             ),
         )
 

@@ -101,7 +101,6 @@ private val readyState = AirShareUiState(
 
 private val activeState = readyState.copy(
     shareStatus = ShareStatus.Active(
-        url = "https://192.168.1.24:8443/?token=preview-session-token",
-        certificateFingerprint = "41:49:52:53:48:41:52:45:AA:BB:CC:DD:EE:FF:00:11",
+        url = "http://192.168.1.24:8080/?token=preview-session-token",
     ),
 )

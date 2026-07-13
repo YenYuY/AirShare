@@ -1,6 +1,6 @@
 # AirShare for Android
 
-AirShare 是獨立的原生 Android 專案。它會在同一個 Wi-Fi 內建立暫時的 HTTPS 服務，讓電腦瀏覽器下載手機允許的照片與影片，不需要帳號、雲端或桌面程式。
+AirShare 是獨立的原生 Android 專案。它會在同一個 Wi-Fi 內建立暫時的 HTTP 服務，讓電腦瀏覽器下載手機允許的照片與影片，不需要帳號、雲端或桌面程式。
 
 ## 技術基準
 
@@ -60,13 +60,13 @@ export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 
 ## 安全模型
 
-- 每次分享產生新的 P-256 自簽 TLS 憑證與 192-bit URL-safe token。
-- 憑證 SAN 綁定目前的 Wi-Fi IP；網址與 QR Code 帶有暫時 token。
-- 只允許 TLS 1.2／1.3，明文 HTTP 已停用。
+- 每次分享產生新的 192-bit URL-safe token，網址與 QR Code 都帶有這個暫時 token。
+- 伺服器只綁定目前的 Wi-Fi IP，停止分享後 token 立即失效。
+- 使用 HTTP 避免自簽憑證警告；區網內容不加密，因此只應在可信任的私人 Wi-Fi 使用。
 - App 進入背景、Wi-Fi 中斷或相簿權限撤銷時會停止分享。
 - 伺服器限制 header 大小、讀取期限與同時連線數，並正確處理 Range 下載。
 
-因憑證是在手機上臨時建立，桌面瀏覽器會顯示本機自簽憑證警告。使用者應核對 App 顯示的 SHA-256 憑證指紋後再繼續。
+任何取得完整暫時網址、且能連上相同區網的人都可能使用分享工作階段。只將 QR Code 或網址提供給預期的接收者，完成後立即停止分享。
 
 ## Google Play
 

@@ -17,6 +17,22 @@ struct AssetInfo: Identifiable {
     let pixelWidth: Int
     let pixelHeight: Int
     let duration: TimeInterval
+
+    var usesCompatibleJPEGDownload: Bool {
+        guard mediaType == .image else { return false }
+        let fileExtension = (filename as NSString).pathExtension.lowercased()
+        let normalizedUTI = uti?.lowercased() ?? ""
+        return fileExtension == "heic" ||
+            fileExtension == "heif" ||
+            normalizedUTI.contains("heic") ||
+            normalizedUTI.contains("heif")
+    }
+
+    var downloadFilename: String {
+        guard usesCompatibleJPEGDownload else { return filename }
+        let base = (filename as NSString).deletingPathExtension
+        return "\(base.isEmpty ? "photo" : base).jpg"
+    }
 }
 
 final class PhotoLibraryService {
@@ -125,10 +141,54 @@ final class PhotoLibraryService {
         return (data: buffer as Data, filename: filename, uti: uti)
     }
 
+    /// Converts a full-resolution photo to broadly supported JPEG while retaining
+    /// the source image metadata where ImageIO can represent it in JPEG.
+    func requestCompatibleJPEGData(for asset: PHAsset, compressionQuality: CGFloat = 0.92) async throws -> Data {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Data, Error>) in
+            let options = PHImageRequestOptions()
+            options.version = .current
+            options.deliveryMode = .highQualityFormat
+            options.isNetworkAccessAllowed = true
+            options.isSynchronous = false
+
+            PHImageManager.default().requestImageDataAndOrientation(for: asset, options: options) { data, _, _, info in
+                if let error = info?[PHImageErrorKey] as? Error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                if let cancelled = info?[PHImageCancelledKey] as? NSNumber, cancelled.boolValue {
+                    continuation.resume(throwing: NSError(
+                        domain: "PhotoLibraryService",
+                        code: -4,
+                        userInfo: [NSLocalizedDescriptionKey: "JPEG conversion was cancelled"]
+                    ))
+                    return
+                }
+                guard let data else {
+                    continuation.resume(throwing: NSError(
+                        domain: "PhotoLibraryService",
+                        code: -5,
+                        userInfo: [NSLocalizedDescriptionKey: "Source photo data is unavailable"]
+                    ))
+                    return
+                }
+
+                do {
+                    let jpeg = try CompatibleJPEGEncoder.encode(
+                        data,
+                        compressionQuality: Double(compressionQuality)
+                    )
+                    continuation.resume(returning: jpeg)
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+
     // Utility to find asset by localIdentifier
     func findAsset(by localIdentifier: String) -> PHAsset? {
         let results = PHAsset.fetchAssets(withLocalIdentifiers: [localIdentifier], options: nil)
         return results.firstObject
     }
 }
-

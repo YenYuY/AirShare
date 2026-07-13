@@ -15,10 +15,7 @@ sealed interface ShareStatus {
     data object Idle : ShareStatus
     data object Starting : ShareStatus
 
-    data class Active(
-        val url: String,
-        val certificateFingerprint: String,
-    ) : ShareStatus
+    data class Active(val url: String) : ShareStatus
 
     data class Failed(val message: String) : ShareStatus
 }
@@ -50,10 +47,7 @@ sealed interface AirShareEvent {
     data object NoticeDismissed : AirShareEvent
     data class MediaAccessChanged(val access: MediaAccess) : AirShareEvent
     data class NetworkChanged(val status: NetworkStatus) : AirShareEvent
-    data class ServerStarted(
-        val url: String,
-        val certificateFingerprint: String,
-    ) : AirShareEvent
+    data class ServerStarted(val url: String) : AirShareEvent
     data class ServerFailed(val message: String) : AirShareEvent
     data class StartBlocked(val message: String) : AirShareEvent
 }
@@ -128,7 +122,6 @@ object AirShareStateMachine {
                     state.copy(
                         shareStatus = ShareStatus.Active(
                             url = event.url,
-                            certificateFingerprint = event.certificateFingerprint,
                         ),
                         notice = null,
                     ),
