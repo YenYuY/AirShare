@@ -2,32 +2,32 @@
 
 ## Register
 
-product
+brand
 
 ## Users
 
-People who want to move photos and videos from an iPhone to a computer on the same Wi-Fi network without an account, cable, or cloud upload.
+People using iPhone or Android who want to move original photos and videos to a computer quickly, without a cable, cloud account, or desktop utility. They may be creators, office workers, teachers, or anyone working across phone and computer on a trusted Wi-Fi network.
 
 ## Product Purpose
 
-AirShare turns the phone into a temporary local photo-sharing server. Success means a user can understand the connection state, start sharing, and open the provided address on a computer with minimal setup and high confidence.
+Explain AirShare clearly, build confidence in local-first transfer, distinguish the iOS and Android capabilities, and help visitors understand the three-step workflow before downloading or using the app.
 
 ## Brand Personality
 
-Simple, trustworthy, and quietly futuristic. The experience should feel at home on iOS and use familiar Apple interaction patterns.
+Direct, reassuring, and brisk. AirShare should feel like a dependable native utility with the confidence of a well-made networking appliance.
 
 ## Anti-references
 
-Avoid over-glowing cyber aesthetics, decorative glass panels, dense technical dashboards, generic card grids, and unfamiliar custom controls that obscure the primary transfer action.
+Avoid generic SaaS card grids, neon hacker dashboards, glassmorphism, vague cloud language, decorative gradients, overly rounded panels, or security claims that hide the actual local-network behavior.
 
 ## Design Principles
 
-- Make connection state understandable at a glance.
-- Keep one unmistakable primary action per state.
-- Earn trust through native behavior, clear status feedback, and restrained decoration.
-- Reveal technical details only where they help complete the transfer.
-- Preserve a calm, legible experience across device sizes and languages.
+1. Show the product on both platforms instead of merely claiming support.
+2. Make the local-only data path unmistakable.
+3. Put the three-step mental model before technical detail.
+4. Give Chinese, English, and Japanese equal information—not partial translations.
+5. Keep the visual language precise and confident enough to earn trust with personal media.
 
 ## Accessibility & Inclusion
 
-Support Dynamic Type, VoiceOver, sufficient contrast, 44-point touch targets, reduced motion, and layouts that tolerate longer Traditional Chinese, English, and Japanese copy.
+Target WCAG 2.2 AA contrast, semantic landmarks, keyboard-operable language selection, reduced-motion support, clear focus behavior, responsive layouts, and copy that tolerates expansion across Traditional Chinese, English, and Japanese.

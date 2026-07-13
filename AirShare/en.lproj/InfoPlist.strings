@@ -1,3 +1,0 @@
-"NSPhotoLibraryUsageDescription" = "本 App 需要讀取您的相簿，以在區域網路提供照片與影片的瀏覽與下載。";
-"NSPhotoLibraryAddUsageDescription" = "本 App 需要存取您的相簿以儲存或匯出媒體檔案。";
-"NSLocalNetworkUsageDescription" = "本 App 需要使用區域網路，以在同一個 Wi-Fi 下提供檔案分享與裝置連線。";

@@ -1,629 +1,165 @@
 <!doctype html>
 <html lang="zh-Hant">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AirShare | iPhone 相簿與影片區網抓取</title>
-    <meta
-      name="description"
-      content="AirShare 讓 iPhone 提供本機照片與影片，顯示 LAN URL，讓同一個區域網路內的電腦直接抓取下載。"
-    />
-    <link rel="icon" type="image/png" href="favicon-rounded.png?v=2" />
-    <link rel="shortcut icon" type="image/png" href="favicon-rounded.png?v=2" />
-    <link rel="apple-touch-icon" href="favicon-rounded.png?v=2" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      :root {
-        --bg: #f3f7ff;
-        --bg-soft: #e9f2ff;
-        --surface: #ffffff;
-        --ink: #192330;
-        --ink-soft: #4a5b6f;
-        --brand: #1570ef;
-        --brand-deep: #0d4fb0;
-        --accent: #0d9488;
-        --accent-soft: #d8f5f3;
-        --line: #dbe7fb;
-        --radius-xl: 28px;
-        --radius-lg: 18px;
-        --shadow: 0 16px 40px rgba(34, 35, 39, 0.12);
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-      }
-
-      body {
-        font-family: "Outfit", "Noto Sans TC", sans-serif;
-        color: var(--ink);
-        background:
-          radial-gradient(circle at 14% 10%, rgba(59, 130, 246, 0.18) 0%, transparent 32%),
-          radial-gradient(circle at 86% 8%, rgba(20, 184, 166, 0.16) 0%, transparent 26%),
-          linear-gradient(180deg, #f8fbff 0%, #ffffff 45%, #edf5ff 100%);
-        line-height: 1.6;
-      }
-
-      .shape {
-        position: fixed;
-        z-index: -1;
-        border-radius: 999px;
-        filter: blur(6px);
-        opacity: 0.32;
-        animation: drift 14s ease-in-out infinite;
-      }
-
-      .shape.one {
-        width: 190px;
-        height: 190px;
-        background: #8dc2ff;
-        left: -40px;
-        top: 18%;
-      }
-
-      .shape.two {
-        width: 230px;
-        height: 230px;
-        background: #8fe5df;
-        right: -70px;
-        top: 45%;
-        animation-delay: 1.8s;
-      }
-
-      @keyframes drift {
-        0%,
-        100% {
-          transform: translateY(0);
-        }
-        50% {
-          transform: translateY(-14px);
-        }
-      }
-
-      .container {
-        width: min(1100px, 92vw);
-        margin: 0 auto;
-      }
-
-      nav {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 26px 0 8px;
-      }
-
-      .logo {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-weight: 800;
-        font-size: 1.1rem;
-        letter-spacing: 0.03em;
-      }
-
-      .logo-mark {
-        width: 34px;
-        height: 34px;
-        border-radius: 10px;
-        background-image: url("unnamed.jpg");
-        background-size: cover;
-        background-position: center;
-        border: 1px solid #d7e3f7;
-        box-shadow: 0 6px 16px rgba(21, 112, 239, 0.26);
-      }
-
-      .nav-links {
-        display: flex;
-        gap: 20px;
-        font-size: 0.95rem;
-      }
-
-      .nav-links a {
-        color: var(--ink-soft);
-        text-decoration: none;
-      }
-
-      .hero {
-        display: grid;
-        grid-template-columns: 1.12fr 0.88fr;
-        align-items: center;
-        gap: 42px;
-        padding: 42px 0 54px;
-      }
-
-      .eyebrow {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: #fff4e8;
-        border: 1px solid #ffd5b9;
-        color: var(--brand-deep);
-        padding: 7px 14px;
-        border-radius: 999px;
-        font-size: 0.86rem;
-        font-weight: 600;
-      }
-
-      h1 {
-        margin: 14px 0 16px;
-        font-size: clamp(2rem, 4.8vw, 3.35rem);
-        line-height: 1.12;
-        letter-spacing: -0.02em;
-      }
-
-      .hero p {
-        margin: 0;
-        color: var(--ink-soft);
-        font-size: 1.08rem;
-        max-width: 48ch;
-      }
-
-      .cta-row {
-        margin-top: 28px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-      }
-
-      .btn {
-        border: none;
-        border-radius: 999px;
-        padding: 12px 22px;
-        font-size: 0.96rem;
-        font-weight: 700;
-        text-decoration: none;
-        transition: transform 0.2s ease;
-      }
-
-      .btn:hover {
-        transform: translateY(-2px);
-      }
-
-      .btn-primary {
-        color: #fff;
-        background: linear-gradient(135deg, var(--brand), var(--brand-deep));
-      }
-
-      .btn-secondary {
-        color: var(--accent);
-        background: #e7f5f3;
-      }
-
-      .btn-store {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        padding: 9px 14px 9px 10px;
-        border-radius: 14px;
-        color: #fff;
-        background: #0f141d;
-        border: 1px solid #243040;
-      }
-
-      .btn-store:hover {
-        transform: translateY(-2px);
-        background: #111926;
-      }
-
-      .btn-store img {
-        width: 28px;
-        height: 28px;
-        display: block;
-        border-radius: 8px;
-      }
-
-      .store-copy {
-        display: flex;
-        flex-direction: column;
-        line-height: 1.05;
-      }
-
-      .store-copy small {
-        font-size: 0.68rem;
-        font-weight: 500;
-        opacity: 0.78;
-      }
-
-      .store-copy strong {
-        font-size: 0.95rem;
-        font-weight: 700;
-        letter-spacing: 0.01em;
-      }
-
-      .app-panel {
-        background: linear-gradient(165deg, #fafdff, #eff5ff);
-        border: 1px solid var(--line);
-        border-radius: var(--radius-xl);
-        box-shadow: var(--shadow);
-        padding: 18px;
-        display: grid;
-        place-items: center;
-        gap: 14px;
-      }
-
-      .preview-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        color: #607080;
-        font-size: 0.84rem;
-        font-weight: 600;
-      }
-
-      .lan-url {
-        margin: 0;
-        font-size: 0.8rem;
-        color: #436184;
-        background: #edf4ff;
-        border: 1px solid #d5e5ff;
-        border-radius: 10px;
-        padding: 7px 10px;
-      }
-
-      .phone-shell {
-        width: min(320px, 100%);
-        background: linear-gradient(180deg, #1f2530, #0f131a);
-        border: 2px solid #0d1118;
-        border-radius: 44px;
-        padding: 11px;
-        box-shadow: 0 24px 45px rgba(15, 23, 42, 0.28);
-        position: relative;
-      }
-
-      .phone-notch {
-        position: absolute;
-        top: 10px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 39%;
-        height: 25px;
-        background: #0a0a0d;
-        border-radius: 0 0 14px 14px;
-        z-index: 3;
-      }
-
-      .phone-screen {
-        border-radius: 34px;
-        overflow: hidden;
-        aspect-ratio: 390 / 844;
-        background: #000;
-      }
-
-      .phone-screen img {
-        width: 100%;
-        height: 100%;
-        display: block;
-        object-fit: contain;
-        object-position: top;
-        background: #000;
-      }
-
-      .phone-home {
-        position: absolute;
-        bottom: 15px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 38%;
-        height: 5px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.9);
-        z-index: 3;
-      }
-
-      section {
-        padding: 36px 0;
-      }
-
-      .section-title {
-        margin: 0 0 12px;
-        font-size: clamp(1.5rem, 3vw, 2.2rem);
-        line-height: 1.18;
-      }
-
-      .section-intro {
-        margin: 0 0 24px;
-        max-width: 66ch;
-        color: var(--ink-soft);
-      }
-
-      .grid {
-        display: grid;
-        gap: 16px;
-      }
-
-      .feature-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-      }
-
-      .card {
-        background: #fff;
-        border: 1px solid #f1e1ce;
-        border-radius: var(--radius-lg);
-        padding: 18px;
-      }
-
-      .card h3 {
-        margin: 6px 0 8px;
-        font-size: 1.05rem;
-      }
-
-      .card p {
-        margin: 0;
-        color: var(--ink-soft);
-        font-size: 0.93rem;
-      }
-
-      .icon {
-        font-size: 1.3rem;
-      }
-
-      .steps {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-
-      .step-num {
-        width: 30px;
-        height: 30px;
-        display: grid;
-        place-items: center;
-        border-radius: 999px;
-        background: #ffe8d2;
-        color: var(--brand-deep);
-        font-weight: 700;
-        margin-bottom: 10px;
-      }
-
-      .scene-wrap {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-
-      .scene {
-        border: 1px solid #e6ddd2;
-        padding: 8px 14px;
-        border-radius: 999px;
-        background: #fff;
-        font-size: 0.9rem;
-      }
-
-      .reveal {
-        opacity: 0;
-        transform: translateY(18px) scale(0.98);
-        transition: opacity 0.5s ease, transform 0.5s ease;
-      }
-
-      .reveal.show {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-
-      .reveal.hide-up {
-        opacity: 0;
-        transform: translateY(-18px) scale(0.98);
-      }
-
-      .reveal.hide-down {
-        opacity: 0;
-        transform: translateY(18px) scale(0.98);
-      }
-
-      footer {
-        border-top: 1px solid #f0dbc3;
-        margin-top: 44px;
-        padding: 26px 0 40px;
-        color: #77818f;
-        font-size: 0.9rem;
-      }
-
-      @media (max-width: 940px) {
-        .hero {
-          grid-template-columns: 1fr;
-          gap: 24px;
-          padding-top: 28px;
-        }
-
-        .feature-grid {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .steps {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      @media (max-width: 640px) {
-        .nav-links {
-          display: none;
-        }
-
-        .feature-grid {
-          grid-template-columns: 1fr;
-        }
-
-        h1 {
-          font-size: clamp(1.8rem, 8vw, 2.6rem);
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="shape one"></div>
-    <div class="shape two"></div>
-
-    <div class="container">
-      <nav>
-        <div class="logo">
-          <div class="logo-mark" aria-hidden="true"></div>
-          <span>AirShare</span>
-        </div>
-        <div class="nav-links">
-          <a href="#about">關於</a>
-          <a href="#features">特色</a>
-          <a href="#how">使用方式</a>
-          <a href="#scenes">情境</a>
-        </div>
-      </nav>
-
-      <header class="hero reveal">
-        <div>
-          <span class="eyebrow">iPhone 相簿與影片區網存取 App</span>
-          <h1>讓區域網路上的電腦，直接抓取 iPhone 照片與影片</h1>
-          <p>
-            在 iPhone 開啟 AirShare 並授權相簿後，App 會顯示 LAN URL。電腦只要在同一個區域網路用瀏覽器連進來，就能瀏覽並下載照片與影片。
-          </p>
-          <div class="cta-row">
-            <a class="btn btn-primary" href="#features">看重點特色</a>
-            <a class="btn btn-secondary" href="#how">看使用流程</a>
-            <a
-              class="btn btn-store"
-              href="https://apps.apple.com/tw/app/airshare-wifi-photo-download/id6758705202"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img src="appstore-icon.svg" alt="" aria-hidden="true" />
-              <span class="store-copy">
-                <small>立即下載</small>
-                <strong>App Store</strong>
-              </span>
-            </a>
-          </div>
-        </div>
-
-        <div class="app-panel">
-          <div class="preview-head">
-            <span>AirShare App 實機畫面</span>
-            <span>iPhone Mockup</span>
-          </div>
-          <div class="phone-shell">
-            <div class="phone-notch"></div>
-            <div class="phone-screen">
-              <img src="IMG_3156.PNG" alt="AirShare iPhone 截圖畫面" loading="lazy" />
-            </div>
-            <div class="phone-home"></div>
-          </div>
-          <p class="lan-url">提示：LAN URL 會顯示在 App 畫面中供電腦連線。</p>
-        </div>
-      </header>
-
-      <section id="about" class="reveal">
-        <h2 class="section-title">為什麼做 AirShare？</h2>
-        <p class="section-intro">
-          你的照片與影片都在 iPhone 裡，但常常需要在電腦上快速取用。AirShare 把 iPhone 變成區網內可存取的媒體來源，並透過清楚的 LAN URL 讓電腦快速連上抓取。
-        </p>
-      </section>
-
-      <section id="features" class="reveal">
-        <h2 class="section-title">你會感受到的 4 個重點</h2>
-        <div class="grid feature-grid">
-          <article class="card">
-            <div class="icon">🔓</div>
-            <h3>需要開啟相簿權限</h3>
-            <p>第一次使用先授權 AirShare 讀取相簿，才可提供照片與影片清單。</p>
-          </article>
-          <article class="card">
-            <div class="icon">🌐</div>
-            <h3>顯示 LAN URL</h3>
-            <p>App 直接顯示可連線網址，電腦端輸入後即可進入下載頁面。</p>
-          </article>
-          <article class="card">
-            <div class="icon">🎬</div>
-            <h3>照片與影片都可下載</h3>
-            <p>除了照片，影片檔也能在同一個頁面被電腦端直接抓取下載。</p>
-          </article>
-          <article class="card">
-            <div class="icon">💻</div>
-            <h3>同網路瀏覽器直連</h3>
-            <p>iPhone 與電腦在同一區網時，不用裝額外工具，瀏覽器就能用。</p>
-          </article>
-        </div>
-      </section>
-
-      <section id="how" class="reveal">
-        <h2 class="section-title">3 步驟就能開始使用</h2>
-        <div class="grid steps">
-          <article class="card">
-            <div class="step-num">1</div>
-            <h3>在 iPhone 開啟 AirShare</h3>
-            <p>開啟 App 並允許相簿權限，啟用照片與影片的分享服務。</p>
-          </article>
-          <article class="card">
-            <div class="step-num">2</div>
-            <h3>查看並輸入 LAN URL</h3>
-            <p>在同網路電腦輸入 AirShare 顯示的 LAN URL，打開媒體列表頁。</p>
-          </article>
-          <article class="card">
-            <div class="step-num">3</div>
-            <h3>挑選並下載媒體</h3>
-            <p>在電腦端勾選需要的照片或影片，直接抓取到本機資料夾。</p>
-          </article>
-        </div>
-      </section>
-
-      <section id="scenes" class="reveal">
-        <h2 class="section-title">AirShare 很適合這些情境</h2>
-        <p class="section-intro">重點是讓 iPhone 裡的照片與影片，在電腦端可以立即被抓取使用。</p>
-        <div class="scene-wrap">
-          <span class="scene">活動拍攝後快速拉照片到筆電</span>
-          <span class="scene">不接線備份 iPhone 相簿</span>
-          <span class="scene">短影片拍完立即拉到電腦剪輯</span>
-          <span class="scene">辦公室內網即時取圖</span>
-          <span class="scene">教學或簡報前快速整理手機照片</span>
-        </div>
-      </section>
-
-      <footer>
-        AirShare © 2026
-      </footer>
-    </div>
-
-    <script>
-      const items = document.querySelectorAll('.reveal');
-      let lastY = window.scrollY;
-      let scrollDirection = 'down';
-
-      window.addEventListener(
-        'scroll',
-        () => {
-          const currentY = window.scrollY;
-          scrollDirection = currentY > lastY ? 'down' : 'up';
-          lastY = currentY;
-        },
-        { passive: true }
-      );
-
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            const el = entry.target;
-            if (entry.isIntersecting) {
-              el.classList.remove('hide-up', 'hide-down');
-              el.classList.add('show');
-            } else {
-              el.classList.remove('show');
-              el.classList.add(scrollDirection === 'up' ? 'hide-up' : 'hide-down');
-            }
-          });
-        },
-        { threshold: 0.2 }
-      );
-
-      items.forEach((el, index) => {
-        el.style.transitionDelay = `${index * 80}ms`;
-        el.classList.add('hide-down');
-        observer.observe(el);
-      });
-    </script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#071d2e" />
+  <title>AirShare — 手機照片，直接傳到電腦</title>
+  <meta name="description" content="AirShare 讓 iPhone 與 Android 手機透過同一個 Wi-Fi，把照片與影片直接傳到電腦。不需雲端、不需帳號。" />
+  <link rel="icon" type="image/png" href="favicon-rounded.png?v=3" />
+  <link rel="apple-touch-icon" href="favicon-rounded.png?v=3" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{--navy:oklch(24% .055 239);--navy-2:oklch(31% .07 235);--blue:oklch(58% .15 239);--aqua:oklch(80% .13 175);--mist:oklch(97% .012 232);--white:#fff;--ink:oklch(22% .035 240);--muted:oklch(43% .035 240);--line:oklch(87% .025 235);--max:1180px;--ease:cubic-bezier(.16,1,.3,1)}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;overflow-x:clip;font-family:"Figtree","Noto Sans TC","Noto Sans JP",sans-serif;color:var(--ink);background:var(--mist);line-height:1.65}button,a{font:inherit}a{color:inherit}a:focus-visible,button:focus-visible{outline:3px solid var(--aqua);outline-offset:4px}.wrap{width:min(var(--max),calc(100% - 40px));margin:auto}html:lang(zh-Hant) body{line-break:strict;word-break:normal}html:lang(zh-Hant) h1,html:lang(zh-Hant) h2{word-break:keep-all;overflow-wrap:normal}
+    .site-nav{position:absolute;z-index:5;inset:0 0 auto;color:white}.nav-inner{height:88px;display:flex;align-items:center;justify-content:space-between}.brand{display:flex;align-items:center;gap:11px;text-decoration:none;font-size:1.08rem;font-weight:800}.brand img{width:40px;height:40px;border-radius:11px}.nav-actions{display:flex;align-items:center;gap:28px}.nav-links{display:flex;gap:24px}.nav-links a{text-decoration:none;color:rgba(255,255,255,.78);font-size:.94rem}.nav-links a:hover{color:white}.language{position:relative}.lang-button{min-height:42px;padding:0 14px;color:white;background:transparent;border:1px solid rgba(255,255,255,.32);border-radius:999px;cursor:pointer}.lang-menu{display:none;position:absolute;right:0;top:50px;width:150px;padding:6px;background:white;color:var(--ink);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.18)}.lang-menu.open{display:block}.lang-menu button{display:block;width:100%;padding:9px 10px;text-align:left;border:0;background:none;border-radius:8px;cursor:pointer}.lang-menu button:hover,.lang-menu button[aria-current="true"]{background:var(--mist)}
+    .hero{min-height:780px;padding:150px 0 88px;overflow:hidden;color:white;background:var(--navy);position:relative}.hero:after{content:"";position:absolute;width:700px;height:700px;right:-250px;top:-260px;border-radius:50%;background:var(--aqua);opacity:.12}.hero-grid{display:grid;grid-template-columns:minmax(0,1.03fr) minmax(390px,.97fr);align-items:center;gap:70px;position:relative;z-index:1}.platform-line{display:flex;align-items:center;gap:10px;color:var(--aqua);font-weight:700}.platform-dots{display:flex}.platform-dots span{width:10px;height:10px;border-radius:50%;background:currentColor}.platform-dots span+span{margin-left:-3px;background:white}.hero h1{margin:18px 0 20px;font-size:clamp(3rem,6vw,5.7rem);line-height:.99;letter-spacing:-.04em;text-wrap:balance}.semantic-line{display:block}.hero-copy{max-width:57ch;margin:0;color:rgba(255,255,255,.8);font-size:clamp(1.05rem,1.6vw,1.22rem);text-wrap:pretty}.cta{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:32px}.button{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:0 21px;border-radius:999px;text-decoration:none;font-weight:700;transition:transform .25s var(--ease),background .25s}.button:hover{transform:translateY(-2px)}.button:active{transform:translateY(0)}.button.primary{background:var(--aqua);color:var(--navy)}.button.ghost{border:1px solid rgba(255,255,255,.42);color:white}.trust{display:flex;gap:20px;flex-wrap:wrap;margin-top:30px;color:rgba(255,255,255,.74);font-size:.88rem}.trust span:before{content:"✓";margin-right:7px;color:var(--aqua);font-weight:800}
+    .devices{height:520px;position:relative}.phone{position:absolute;width:250px;padding:8px;background:#090f16;border:1px solid rgba(255,255,255,.24);border-radius:38px;box-shadow:0 20px 38px rgba(0,0,0,.28)}.ios:before{content:"";position:absolute;z-index:2;top:14px;left:50%;translate:-50% 0;width:34%;height:20px;background:#070b10;border-radius:0 0 12px 12px}.phone-screen{position:relative;overflow:hidden;aspect-ratio:390/844;border-radius:30px;background:#f7f9fc}.ios{right:198px;top:6px;transform:rotate(-5deg)}.android{right:8px;top:72px;transform:rotate(5deg);background:#14324b}.ios img{width:100%;height:100%;object-fit:cover;display:block}.phone-label{position:absolute;z-index:3;left:18px;bottom:17px;padding:6px 10px;border-radius:999px;background:rgba(7,29,46,.82);backdrop-filter:blur(8px);font-size:.72rem;font-weight:700}
+    .android-ui{height:100%;padding:43px 17px 18px;color:#191c20;font-family:"Noto Sans TC",sans-serif}.a-header{display:flex;align-items:center;gap:9px}.a-icon{width:38px;height:38px;border-radius:50%;object-fit:cover}.a-title{font-weight:700;font-size:13px}.a-sub{color:#59636d;font-size:7px;line-height:1.4}.a-lang{margin-left:auto;font-size:16px}.privacy{display:flex;gap:8px;margin-top:16px;padding:11px;background:#d0e4ff;border-radius:10px;font-size:7px}.privacy b{display:block;font-size:9px}.status{margin-top:14px;padding:16px;background:#edf1f6;border-radius:14px;text-align:center}.wifi-icon{width:42px;height:42px;margin:0 auto 8px;border-radius:50%;display:grid;place-items:center;background:#d0e4ff;color:#1264a3;font-size:19px}.status h4{margin:0;font-size:11px}.status p{margin:5px 0 12px;color:#59636d;font-size:7px}.a-btn{padding:9px 13px;background:#1264a3;color:white;border-radius:999px;font-size:8px;font-weight:700}.how{margin-top:15px}.how h5{margin:0 0 7px;font-size:9px}.how div{font-size:7px;color:#59636d;padding:5px 0;border-bottom:1px solid #dce2e8}
+    .statement{padding:46px 0;background:var(--aqua);color:var(--navy)}.statement-inner{display:flex;align-items:center;justify-content:space-between;gap:30px}.statement strong{font-size:clamp(1.35rem,2.5vw,2.2rem);letter-spacing:-.025em}.statement span{max-width:52ch;font-weight:600}
+    section{padding:112px 0}.intro{display:grid;grid-template-columns:.7fr 1.3fr;gap:60px;align-items:start}.section-label{color:var(--blue);font-weight:800}.section-title{max-width:18ch;margin:0 0 24px;font-size:clamp(2.25rem,4.7vw,4.5rem);line-height:1.04;letter-spacing:-.038em;text-wrap:balance}.section-copy{max-width:63ch;color:var(--muted);font-size:1.08rem}
+    .feature-bands{margin-top:66px;border-top:1px solid var(--line)}.feature{display:grid;grid-template-columns:70px .62fr 1fr;gap:30px;padding:31px 0;border-bottom:1px solid var(--line);align-items:start}.feature-icon{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--navy);color:var(--aqua);font-size:1.2rem}.feature h3{margin:5px 0;font-size:1.25rem}.feature p{margin:5px 0;color:var(--muted)}
+    .platforms{background:white}.platform-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:60px;background:var(--line)}.platform{background:white;padding:50px}.platform-head{display:flex;justify-content:space-between;align-items:start;gap:20px}.platform h3{margin:0;font-size:2rem}.badge{padding:6px 10px;border-radius:999px;background:var(--mist);color:var(--blue);font-size:.78rem;font-weight:700}.platform p{color:var(--muted)}.specs{list-style:none;padding:0;margin:25px 0 0}.specs li{padding:12px 0;border-top:1px solid var(--line)}.specs li:before{content:"→";margin-right:10px;color:var(--blue)}
+    .steps-section{color:white;background:var(--navy)}.steps-head{display:flex;align-items:end;justify-content:space-between;gap:30px}.steps-head p{max-width:46ch;color:rgba(255,255,255,.67)}.steps{display:grid;grid-template-columns:repeat(3,1fr);margin-top:58px;border-top:1px solid rgba(255,255,255,.2)}.step{padding:30px 36px 0 0}.step+.step{padding-left:36px;border-left:1px solid rgba(255,255,255,.2)}.step b{display:block;color:var(--aqua);font-size:3rem;line-height:1}.step h3{margin:22px 0 10px;font-size:1.25rem}.step p{color:rgba(255,255,255,.66)}
+    .privacy-section{text-align:center}.privacy-section .section-title{margin-inline:auto;max-width:15ch}.privacy-section .section-copy{margin:0 auto}.privacy-points{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:35px}.privacy-points span{padding:9px 15px;border:1px solid var(--line);border-radius:999px;background:white;font-weight:600}
+    .app-policy{background:white;scroll-margin-top:24px}.policy-head{display:grid;grid-template-columns:.75fr 1.25fr;gap:60px;padding-bottom:44px;border-bottom:1px solid var(--line)}.policy-head .section-title{margin:0}.policy-lead{max-width:62ch;margin:8px 0 0;color:var(--muted);font-size:1.08rem}.policy-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}.policy-meta span{padding:7px 12px;border-radius:999px;background:var(--mist);color:var(--navy);font-size:.85rem;font-weight:700}.policy-copy{display:none;max-width:76ch;margin:48px auto 0}.policy-copy h3{margin:42px 0 10px;font-size:1.35rem;line-height:1.3;letter-spacing:-.015em}.policy-copy h3:first-child{margin-top:0}.policy-copy p,.policy-copy li{color:var(--muted);text-wrap:pretty}.policy-copy ul{padding-left:1.25rem}.policy-copy strong{color:var(--ink)}.policy-notice{margin-top:42px;padding:18px 20px;background:var(--mist);border-radius:12px;color:var(--muted)}html:lang(zh-Hant) .policy-copy[lang="zh-Hant"],html:lang(en) .policy-copy[lang="en"],html:lang(ja) .policy-copy[lang="ja"]{display:block}
+    footer{padding:42px 0;background:#04131f;color:rgba(255,255,255,.66)}.footer-inner{display:flex;align-items:center;justify-content:space-between;gap:24px}.footer-links{display:flex;gap:20px}.footer-links a{text-decoration:none}.footer-links a:hover{color:white}
+    .reveal{opacity:1;transform:none}
+    @media(max-width:900px){.nav-links{display:none}.hero{padding-top:120px}.hero-grid{grid-template-columns:1fr}.devices{height:500px;max-width:520px;margin:20px auto 0}.intro,.policy-head{grid-template-columns:1fr;gap:15px}.platform-grid{grid-template-columns:1fr}.steps{grid-template-columns:1fr}.step,.step+.step{padding:28px 0;border-left:0;border-bottom:1px solid rgba(255,255,255,.2)}.statement-inner,.steps-head{align-items:start;flex-direction:column}.feature{grid-template-columns:55px 1fr}.feature p{grid-column:2}.ios{right:48%}.android{right:6%}}
+    @media(max-width:560px){.wrap{width:min(100% - 28px,var(--max))}.hero{min-height:auto}.hero h1{font-size:clamp(2.7rem,14vw,4rem)}.devices{height:400px}.phone{width:195px;border-radius:30px}.phone-screen{border-radius:23px}.ios{right:43%}.android{right:0}.statement{padding:34px 0}section{padding:78px 0}.feature{grid-template-columns:44px 1fr;gap:14px}.platform{padding:32px 22px}.footer-inner{align-items:flex-start;flex-direction:column}.nav-inner{height:74px}.language span{display:none}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation:none!important;transition:none!important}.js .reveal{opacity:1;transform:none}}
+  </style>
+</head>
+<body>
+  <script>document.documentElement.classList.add('js')</script>
+  <nav class="site-nav"><div class="wrap nav-inner"><a class="brand" href="#top"><img src="unnamed.jpg" alt="" /><span>AirShare</span></a><div class="nav-actions"><div class="nav-links"><a href="#features" data-i18n="nav_features"></a><a href="#platforms" data-i18n="nav_platforms"></a><a href="#how" data-i18n="nav_how"></a><a href="#privacy" data-i18n="nav_privacy"></a></div><div class="language"><button class="lang-button" type="button" aria-haspopup="true" aria-controls="language-options" aria-expanded="false">文 <span data-i18n="language"></span></button><div class="lang-menu" id="language-options"><button type="button" data-lang="zh-Hant">繁體中文</button><button type="button" data-lang="en">English</button><button type="button" data-lang="ja">日本語</button></div></div></div></div></nav>
+  <main id="top">
+    <header class="hero"><div class="wrap hero-grid"><div class="reveal"><div class="platform-line"><span class="platform-dots"><span></span><span></span></span><span data-i18n="platform_line"></span></div><h1 data-i18n-lines="hero_title"></h1><p class="hero-copy" data-i18n="hero_copy"></p><div class="cta"><a class="button primary" href="https://apps.apple.com/tw/app/airshare-wifi-photo-download/id6758705202" target="_blank" rel="noopener" data-i18n="download_ios"></a><a class="button ghost" href="#platforms" data-i18n="explore_android"></a></div><div class="trust"><span data-i18n="trust_account"></span><span data-i18n="trust_cloud"></span><span data-i18n="trust_desktop"></span></div></div><div class="devices reveal" data-i18n-aria="device_preview"><div class="phone ios"><div class="phone-screen"><img src="IMG_3156.PNG" data-i18n-alt="ios_alt" /></div><span class="phone-label">iOS</span></div><div class="phone android"><div class="phone-screen"><div class="android-ui"><div class="a-header"><img class="a-icon" src="unnamed.jpg" alt="" /><div><div class="a-title">AirShare</div><div class="a-sub" data-i18n="android_tagline"></div></div><div class="a-lang">文</div></div><div class="privacy"><span>🔒</span><div><b data-i18n="local_only"></b><span data-i18n="android_privacy"></span></div></div><div class="status"><div class="wifi-icon">⌁</div><h4 data-i18n="ready"></h4><p data-i18n="ready_copy"></p><span class="a-btn" data-i18n="start"></span></div><div class="how"><h5 data-i18n="how_short"></h5><div data-i18n="a_step1"></div><div data-i18n="a_step2"></div><div data-i18n="a_step3"></div></div></div></div><span class="phone-label">Android</span></div></div></div></header>
+    <div class="statement"><div class="wrap statement-inner"><strong data-i18n="statement_title"></strong><span data-i18n="statement_copy"></span></div></div>
+    <section id="features"><div class="wrap"><div class="intro reveal"><div class="section-label" data-i18n="features_label"></div><div><h2 class="section-title" data-i18n-lines="features_title"></h2><p class="section-copy" data-i18n="features_copy"></p></div></div><div class="feature-bands reveal"><article class="feature"><div class="feature-icon">↗</div><h3 data-i18n="f1_title"></h3><p data-i18n="f1_copy"></p></article><article class="feature"><div class="feature-icon">⌁</div><h3 data-i18n="f2_title"></h3><p data-i18n="f2_copy"></p></article><article class="feature"><div class="feature-icon">▣</div><h3 data-i18n="f3_title"></h3><p data-i18n="f3_copy"></p></article><article class="feature"><div class="feature-icon">○</div><h3 data-i18n="f4_title"></h3><p data-i18n="f4_copy"></p></article></div></div></section>
+    <section class="platforms" id="platforms"><div class="wrap"><div class="intro reveal"><div class="section-label" data-i18n="platforms_label"></div><div><h2 class="section-title" data-i18n-lines="platforms_title"></h2><p class="section-copy" data-i18n="platforms_copy"></p></div></div><div class="platform-grid reveal"><article class="platform"><div class="platform-head"><h3>iOS</h3><span class="badge">App Store</span></div><p data-i18n="ios_copy"></p><ul class="specs"><li data-i18n="ios_1"></li><li data-i18n="ios_2"></li><li data-i18n="ios_3"></li></ul></article><article class="platform"><div class="platform-head"><h3>Android</h3><span class="badge">Android</span></div><p data-i18n="android_copy"></p><ul class="specs"><li data-i18n="android_1"></li><li data-i18n="android_2"></li><li data-i18n="android_3"></li></ul></article></div></div></section>
+    <section class="steps-section" id="how"><div class="wrap"><div class="steps-head reveal"><h2 class="section-title" data-i18n-lines="steps_title"></h2><p data-i18n="steps_copy"></p></div><div class="steps reveal"><article class="step"><b>1</b><h3 data-i18n="s1_title"></h3><p data-i18n="s1_copy"></p></article><article class="step"><b>2</b><h3 data-i18n="s2_title"></h3><p data-i18n="s2_copy"></p></article><article class="step"><b>3</b><h3 data-i18n="s3_title"></h3><p data-i18n="s3_copy"></p></article></div></div></section>
+    <section class="privacy-section" id="privacy"><div class="wrap reveal"><h2 class="section-title" data-i18n-lines="privacy_title"></h2><p class="section-copy" data-i18n="privacy_copy"></p><div class="privacy-points"><span data-i18n="p1"></span><span data-i18n="p2"></span><span data-i18n="p3"></span><span data-i18n="p4"></span></div></div></section>
+    <section class="app-policy" id="app-privacy">
+      <div class="wrap">
+        <header class="policy-head">
+          <div><div class="section-label" data-i18n="policy_label"></div><h2 class="section-title" data-i18n-lines="policy_title"></h2></div>
+          <div><p class="policy-lead" data-i18n="policy_lead"></p><div class="policy-meta"><span data-i18n="policy_effective"></span><span>iOS · Android</span></div></div>
+        </header>
+        <article class="policy-copy" lang="zh-Hant">
+          <h3>1. 政策概述</h3>
+          <p>本隱私權政策適用於 AirShare 的 iOS 與 Android App。AirShare 讓手機與同一個區域網路上的電腦直接傳輸照片與影片。AirShare 不要求建立帳號，也不使用廣告、分析追蹤、遠端當機回報、開發者營運的雲端儲存或中繼伺服器。</p>
+          <h3>2. AirShare 存取的資訊</h3>
+          <p><strong>照片與影片：</strong>經你授權後，AirShare 會讀取作業系統允許 App 存取的照片與影片，用於顯示媒體清單、建立縮圖，以及在分享期間提供下載。除非持有有效連線資訊的人主動下載，否則媒體會留在手機上。</p>
+          <p><strong>區域網路資訊：</strong>AirShare 會在裝置上處理 Wi‑Fi 連線狀態、本機 IP 位址及連線錯誤，以建立分享服務並顯示電腦可使用的網址。這些資訊不會傳送給開發者。</p>
+          <p><strong>分享工作階段：</strong>Android 版本會建立隨機的臨時權杖與憑證資訊，用於授權區網瀏覽器連線；停止分享後權杖即失效。iOS 版本會在同一個區域網路提供本機網址，目前不使用 Android 的臨時權杖機制。</p>
+          <p><strong>App 偏好設定：</strong>語言等偏好可能儲存在你的裝置上。AirShare 不會把這些設定傳送給開發者。</p>
+          <h3>3. 資訊使用方式</h3>
+          <p>上述資訊只用於顯示你允許存取的媒體、建立本機分享服務、顯示縮圖、傳送你選擇下載的原始檔案，以及顯示連線或錯誤狀態。AirShare 不會將資訊用於廣告、使用者分析、建立個人檔案、出售資料或跨 App 追蹤。</p>
+          <h3>4. 傳輸與分享對象</h3>
+          <p>傳輸由使用者主動開始，並在手機與同一區域網路上的瀏覽器之間直接進行。Android 版本使用本機 HTTPS、臨時憑證與工作階段權杖；iOS 版本目前使用同一 Wi‑Fi 上的本機 HTTP 連線。開發者不會接收或儲存傳輸的照片、影片、縮圖或工作階段資料。</p>
+          <p>任何能連上相同網路並取得有效網址、QR Code 或工作階段連結的人，都可能存取分享內容。請只在信任的網路使用 AirShare，不要把連線資訊提供給非預期對象，並在完成後立即停止分享。檔案下載到其他裝置後，該副本將由接收裝置及其使用者控制。</p>
+          <h3>5. 保存與刪除</h3>
+          <p>AirShare 沒有帳號系統或開發者營運的資料庫，因此開發者不保存帳號資料、媒體、傳輸紀錄或工作階段權杖。Android 臨時權杖會在分享停止後失效。本機偏好設定會保留到你清除 App 資料或解除安裝為止。下載到電腦的檔案可使用該電腦的一般檔案管理工具刪除。</p>
+          <h3>6. 權限與你的選擇</h3>
+          <p>你可以允許完整相簿、只允許部分媒體、拒絕權限，或稍後在 iOS／Android 系統設定中變更權限。限制權限後，AirShare 只會顯示作業系統允許的內容。你也可以隨時停止分享，結束區域網路連線。</p>
+          <h3>7. 安全措施</h3>
+          <p>AirShare 將媒體限制在本機分享流程中。Android 使用本機 HTTPS、臨時憑證與隨機工作階段權杖；iOS 分享網址只應在信任的區域網路上使用。任何電子傳輸都無法保證絕對安全，因此請保護連線資訊並在傳輸完成後停止分享。</p>
+          <h3>8. 兒童隱私</h3>
+          <p>AirShare 是一般用途工具，不以 13 歲以下兒童為主要對象，也不會在開發者系統上蓄意收集兒童或其他使用者的個人資料。</p>
+          <h3>9. 政策變更</h3>
+          <p>如果 AirShare 的功能或資料處理方式改變，本政策可能更新。更新版本會顯示新的生效日期；如適用法律或商店政策要求，重大變更會另行通知。</p>
+          <h3>10. 聯絡方式</h3>
+          <p>如有隱私權或資料處理問題，請透過 AirShare 在 App Store 或 Google Play 商店頁面所列的開發者聯絡方式與我們聯繫。</p>
+          <p class="policy-notice"><strong>生效日期：</strong>2026 年 7 月 12 日。政策名稱：AirShare App 隱私權政策。</p>
+        </article>
+        <article class="policy-copy" lang="en">
+          <h3>1. Overview</h3>
+          <p>This Privacy Policy applies to the AirShare app for iOS and Android. AirShare lets a phone transfer photos and videos directly to a computer on the same local network. AirShare requires no account and uses no advertising, analytics, cross-app tracking, remote crash reporting, developer-operated cloud storage, or relay server.</p>
+          <h3>2. Information AirShare accesses</h3>
+          <p><strong>Photos and videos:</strong> With your permission, AirShare reads the photos and videos the operating system allows the app to access. This is used to show the media library, create thumbnails, and make selected media available during a sharing session. Media remains on the phone unless someone with valid connection information actively downloads it.</p>
+          <p><strong>Local-network information:</strong> AirShare processes Wi‑Fi status, local IP addresses, and connection errors on the device to run the sharing service and display the address a computer can use. This information is not sent to the developer.</p>
+          <p><strong>Sharing-session information:</strong> Android creates a random temporary token and certificate information to authorize a local browser. The token expires when sharing stops. iOS provides a local-network address and currently does not use Android's temporary-token mechanism.</p>
+          <p><strong>App preferences:</strong> Preferences such as language may be stored on your device. AirShare does not send these preferences to the developer.</p>
+          <h3>3. How information is used</h3>
+          <p>The information above is used only to show authorized media, operate the local sharing service, display thumbnails, deliver originals you choose to download, and show connection or error status. AirShare does not use information for advertising, analytics, profiling, sale, or cross-app tracking.</p>
+          <h3>4. Transfers and recipients</h3>
+          <p>Transfers are initiated by the user and occur directly between the phone and a browser on the same local network. Android uses local HTTPS, a temporary certificate, and a session token. iOS currently uses a local HTTP connection on the same Wi‑Fi network. The developer does not receive or store transferred photos, videos, thumbnails, or session data.</p>
+          <p>Anyone on the same network who obtains a valid address, QR code, or session link may be able to access the shared content. Use AirShare only on a trusted network, share connection information only with the intended recipient, and stop sharing when finished. A downloaded copy is controlled by the receiving device and its user.</p>
+          <h3>5. Retention and deletion</h3>
+          <p>AirShare has no account system or developer-operated database, so the developer retains no account data, media, transfer history, or session token. Android's temporary token becomes invalid when sharing stops. Local preferences remain until you clear app data or uninstall the app. Files downloaded to a computer can be deleted with that computer's normal file-management tools.</p>
+          <h3>6. Permissions and your choices</h3>
+          <p>You may grant full-library access, grant access to selected media, deny access, or change access later in iOS or Android Settings. When access is limited, AirShare shows only the media the operating system permits. You can stop the local-network connection at any time by ending the sharing session.</p>
+          <h3>7. Security</h3>
+          <p>AirShare keeps media within the local sharing workflow. Android uses local HTTPS, a temporary certificate, and a random session token. The iOS sharing address should be used only on a trusted local network. No electronic transmission can be guaranteed completely secure, so protect connection information and stop sharing promptly.</p>
+          <h3>8. Children's privacy</h3>
+          <p>AirShare is a general-purpose utility and is not directed to children under 13. It does not knowingly collect personal information from children or any other user on developer-operated systems.</p>
+          <h3>9. Changes to this policy</h3>
+          <p>This policy may be updated if AirShare's features or data practices change. The updated version will show a new effective date, and material changes will be disclosed when required by law or store policy.</p>
+          <h3>10. Contact</h3>
+          <p>For privacy or data-handling questions, contact us through the developer contact information listed for AirShare on the App Store or Google Play store page.</p>
+          <p class="policy-notice"><strong>Effective date:</strong> July 12, 2026. Policy name: AirShare App Privacy Policy.</p>
+        </article>
+        <article class="policy-copy" lang="ja">
+          <h3>1. 概要</h3>
+          <p>本プライバシーポリシーは、iOS版およびAndroid版のAirShareに適用されます。AirShareは、同じローカルネットワーク上でスマートフォンからパソコンへ写真や動画を直接転送します。アカウント登録は不要で、広告、分析、アプリ間トラッキング、リモートクラッシュレポート、開発者運営のクラウドストレージや中継サーバーは使用しません。</p>
+          <h3>2. AirShareがアクセスする情報</h3>
+          <p><strong>写真と動画：</strong>ユーザーの許可を得たうえで、OSがAirShareに許可した写真や動画を読み取ります。このアクセスは、メディア一覧とサムネイルの表示、共有中のダウンロード提供にのみ使用されます。有効な接続情報を持つ人がダウンロードしない限り、メディアはスマートフォン上に残ります。</p>
+          <p><strong>ローカルネットワーク情報：</strong>共有サービスを実行し、パソコンで開くアドレスを表示するため、Wi‑Fiの接続状態、ローカルIPアドレス、接続エラーを端末上で処理します。これらの情報は開発者へ送信されません。</p>
+          <p><strong>共有セッション情報：</strong>Android版は、ローカルブラウザを認証するためにランダムな一時トークンと証明書情報を作成します。トークンは共有停止時に無効になります。iOS版はローカルネットワークのアドレスを提供し、現在Android版の一時トークン方式は使用していません。</p>
+          <p><strong>アプリ設定：</strong>言語などの設定が端末内に保存される場合があります。AirShareはこれらの設定を開発者へ送信しません。</p>
+          <h3>3. 情報の利用目的</h3>
+          <p>上記の情報は、許可されたメディアの表示、ローカル共有サービスの実行、サムネイルの表示、選択された元ファイルの配信、接続・エラー状態の表示にのみ使用されます。広告、分析、プロファイリング、販売、アプリ間トラッキングには使用しません。</p>
+          <h3>4. 転送と受信者</h3>
+          <p>転送はユーザーが開始し、スマートフォンと同じローカルネットワーク上のブラウザとの間で直接行われます。Android版はローカルHTTPS、一時証明書、セッショントークンを使用します。iOS版は現在、同じWi‑Fi上のローカルHTTP接続を使用します。開発者が写真、動画、サムネイル、セッション情報を受信または保存することはありません。</p>
+          <p>同じネットワークに接続し、有効なアドレス、QRコード、またはセッションリンクを取得した人は、共有内容にアクセスできる場合があります。信頼できるネットワークでのみ使用し、接続情報を意図した相手以外に共有せず、完了後は共有を停止してください。ダウンロード後のコピーは、受信端末とそのユーザーが管理します。</p>
+          <h3>5. 保存と削除</h3>
+          <p>AirShareにはアカウントシステムや開発者運営のデータベースがないため、開発者はアカウント情報、メディア、転送履歴、セッショントークンを保存しません。Androidの一時トークンは共有停止時に無効になります。端末内の設定は、アプリデータを消去するかアンインストールするまで残ります。パソコンに保存したファイルは、通常のファイル管理機能で削除できます。</p>
+          <h3>6. 権限と選択</h3>
+          <p>ライブラリ全体、一部のメディアのみを許可する、アクセスを拒否する、またはiOS／Androidの設定から後で変更できます。アクセスを制限した場合、AirShareはOSが許可したメディアのみを表示します。共有を停止すれば、ローカルネットワーク接続をいつでも終了できます。</p>
+          <h3>7. セキュリティ</h3>
+          <p>AirShareはメディアをローカル共有の範囲内で処理します。Android版はローカルHTTPS、一時証明書、ランダムなセッショントークンを使用します。iOS版の共有アドレスは、信頼できるローカルネットワークでのみ使用してください。電子的な転送の絶対的な安全性は保証できないため、接続情報を保護し、完了後は速やかに共有を停止してください。</p>
+          <h3>8. 子どものプライバシー</h3>
+          <p>AirShareは一般用途のツールであり、13歳未満の子どもを対象としていません。開発者が運営するシステム上で、子どもまたはその他のユーザーの個人情報を意図的に収集することはありません。</p>
+          <h3>9. ポリシーの変更</h3>
+          <p>AirShareの機能またはデータ取扱いが変更された場合、本ポリシーを更新することがあります。更新版には新しい発効日を表示し、法令またはストアポリシーで必要な場合は重要な変更を通知します。</p>
+          <h3>10. お問い合わせ</h3>
+          <p>プライバシーまたはデータ取扱いに関するお問い合わせは、App StoreまたはGoogle PlayのAirShareストアページに記載されている開発者連絡先をご利用ください。</p>
+          <p class="policy-notice"><strong>発効日：</strong>2026年7月12日。ポリシー名：AirShareアプリプライバシーポリシー。</p>
+        </article>
+      </div>
+    </section>
+  </main>
+  <footer><div class="wrap footer-inner"><div>AirShare © 2026</div><div class="footer-links"><a href="#platforms" data-i18n="nav_platforms"></a><a href="#privacy" data-i18n="nav_privacy"></a><a href="#app-privacy" data-i18n="app_privacy"></a></div></div></footer>
+  <script>
+    const copy={
+      'zh-Hant':{language:'語言',nav_features:'特色',nav_platforms:'支援平台',nav_how:'使用方式',nav_privacy:'隱私',app_privacy:'App 隱私權政策',policy_label:'上架與使用者隱私說明',policy_title:'App 隱私權|政策',policy_lead:'以下政策說明 AirShare 在 iOS 與 Android 上如何存取、使用、傳輸與保存資料，可作為 App Store 與 Google Play 商店頁面的公開隱私權政策。',policy_effective:'生效日期：2026-07-12',platform_line:'iOS 與 Android 都能用',hero_title:'手機照片，|直接到電腦。',hero_copy:'手機與電腦連上同一個 Wi‑Fi。開啟 AirShare，再用電腦瀏覽器輸入 App 顯示的網址，就能下載原始照片與影片。',download_ios:'在 App Store 下載',explore_android:'查看 Android 版本',trust_account:'免帳號',trust_cloud:'不上傳雲端',trust_desktop:'電腦免安裝',device_preview:'AirShare 的 iOS 與 Android 畫面預覽',ios_alt:'AirShare iOS App 實際畫面',android_tagline:'透過 Wi‑Fi 分享照片與影片',local_only:'只在本機網路',android_privacy:'媒體不會上傳到雲端。',ready:'準備好開始分享',ready_copy:'開始後將顯示安全連結與 QR Code。',start:'開始分享',how_short:'運作方式',a_step1:'1　允許照片與影片存取',a_step2:'2　開始本機分享',a_step3:'3　在電腦瀏覽器下載',statement_title:'照片不繞路。',statement_copy:'檔案從手機直接傳到電腦，不會上傳到 AirShare 或其他雲端伺服器。',features_label:'為傳輸而生',features_title:'少一點設定，|多一點掌控。',features_copy:'不接線、不登入，也不用先上傳。從開啟 App 到下載檔案，只需要三個步驟。',f1_title:'原始畫質直接下載',f1_copy:'照片與影片不經壓縮，從手機媒體庫直接下載到電腦。',f2_title:'同一個 Wi‑Fi 就能連線',f2_copy:'不需傳輸線，也不需安裝電腦程式；任何現代瀏覽器都能使用。',f3_title:'先預覽，再下載',f3_copy:'在電腦查看縮圖、選取需要的檔案，再下載原始內容。',f4_title:'你決定何時停止',f4_copy:'分享狀態全程清楚可見；傳完後按一下即可停止連線。',platforms_label:'兩個平台，一個簡單流程',platforms_title:'雙平台支援，|操作一樣簡單。',platforms_copy:'iPhone 與 Android 操作方式一致，並依照平台清楚呈現連線與安全資訊。',ios_copy:'在 iPhone 上快速開啟分享，讓電腦直接取得照片與影片。',ios_1:'顯示區域網路連線網址',ios_2:'瀏覽並下載照片與影片',ios_3:'繁體中文、English、日本語',android_copy:'Android 版本提供 QR Code、安全連結與明確的分享控制。',android_1:'HTTPS 加密的區域網路傳輸',android_2:'QR Code 與單次工作階段連結',android_3:'隨時停止分享或變更媒體範圍',steps_title:'同一個 Wi‑Fi，|三步完成。',steps_copy:'手機與電腦只需要連上同一個可信任的 Wi‑Fi 網路。',s1_title:'允許媒體存取',s1_copy:'選擇 AirShare 可以分享的照片與影片。',s2_title:'開始分享',s2_copy:'App 會顯示電腦可開啟的網址；Android 版本也提供 QR Code。',s3_title:'用瀏覽器下載',s3_copy:'在電腦選取需要的內容，直接下載到本機。',privacy_title:'照片留在你的網路裡。',privacy_copy:'AirShare 無需帳號、不使用分析追蹤，也沒有用來接收檔案的雲端後端。請在信任的 Wi‑Fi 使用，傳完後停止分享。',p1:'無雲端上傳',p2:'無分析追蹤',p3:'無帳號登入',p4:'本機直接傳輸'},
+      en:{language:'Language',nav_features:'Features',nav_platforms:'Platforms',nav_how:'How it works',nav_privacy:'Privacy',app_privacy:'App Privacy Policy',policy_label:'Store and user privacy disclosure',policy_title:'App Privacy|Policy',policy_lead:'This policy explains how AirShare accesses, uses, transfers, and retains information on iOS and Android. It is suitable as the public privacy-policy page linked from the App Store and Google Play.',policy_effective:'Effective: 2026-07-12',platform_line:'Available for iOS and Android',hero_title:'Phone photos.|Straight to your computer.',hero_copy:'Connect your phone and computer to the same Wi‑Fi. Open AirShare, enter the address shown in the app, and download original photos and videos in your browser.',download_ios:'Download on the App Store',explore_android:'Explore Android',trust_account:'No account',trust_cloud:'No cloud upload',trust_desktop:'No desktop app',device_preview:'AirShare previews on iOS and Android',ios_alt:'AirShare iOS app screen',android_tagline:'Share photos and videos over Wi‑Fi',local_only:'Local network only',android_privacy:'Your media is never uploaded to the cloud.',ready:'Ready to start sharing',ready_copy:'A secure link and QR code will appear when sharing starts.',start:'Start sharing',how_short:'How it works',a_step1:'1　Allow photo and video access',a_step2:'2　Start local sharing',a_step3:'3　Download in your browser',statement_title:'Your photos take no detour.',statement_copy:'Files travel directly from your phone to your computer—not to AirShare or another cloud server.',features_label:'Made for moving media',features_title:'Less setup.|More control.',features_copy:'No cable, account, or upload first. Go from opening the app to downloading files in three steps.',f1_title:'Original quality downloads',f1_copy:'Photos and videos move straight from your media library without compression.',f2_title:'Same Wi‑Fi, instant access',f2_copy:'No cable or desktop pairing app. Any modern computer browser works.',f3_title:'Preview, then download',f3_copy:'Review thumbnails, select what you need, then download the original files.',f4_title:'You decide when it stops',f4_copy:'Sharing status stays visible, and one tap ends the connection when you are done.',platforms_label:'Two platforms, one simple flow',platforms_title:'One simple flow.|iPhone and Android.',platforms_copy:'Both versions follow the same workflow, with connection and security details made clear for each platform.',ios_copy:'Start sharing on iPhone and let your computer access photos and videos directly.',ios_1:'Shows a local-network address',ios_2:'Browse and download photos and videos',ios_3:'Traditional Chinese, English and Japanese',android_copy:'Android includes a QR code, secure session link, and explicit sharing controls.',android_1:'Encrypted HTTPS transfer on local Wi‑Fi',android_2:'QR code and one-time session link',android_3:'Stop sharing or change media access anytime',steps_title:'Same Wi‑Fi.|Three simple steps.',steps_copy:'Your phone and computer only need to be connected to the same trusted Wi‑Fi network.',s1_title:'Allow media access',s1_copy:'Choose the photos and videos AirShare may share.',s2_title:'Start sharing',s2_copy:'The app shows an address for your computer; Android also provides a QR code.',s3_title:'Download in a browser',s3_copy:'Select what you need and save it directly to your computer.',privacy_title:'Your photos stay on your network.',privacy_copy:'AirShare needs no account, uses no analytics, and has no cloud backend that receives your files. Use a trusted Wi‑Fi network and stop sharing when finished.',p1:'No cloud upload',p2:'No analytics',p3:'No account',p4:'Direct local transfer'},
+      ja:{language:'言語',nav_features:'特長',nav_platforms:'対応OS',nav_how:'使い方',nav_privacy:'プライバシー',app_privacy:'アプリプライバシーポリシー',policy_label:'ストア掲載・ユーザー向けプライバシー情報',policy_title:'アプリプライバシー|ポリシー',policy_lead:'AirShareがiOSとAndroidで情報にアクセスし、利用、転送、保存する方法を説明します。App StoreとGoogle Playからリンクする公開プライバシーポリシーとして利用できます。',policy_effective:'発効日：2026-07-12',platform_line:'iOS・Androidに対応',hero_title:'スマホの写真を、|まっすぐパソコンへ。',hero_copy:'スマホとパソコンを同じWi‑Fiに接続します。AirShareを開き、表示されたアドレスをパソコンのブラウザに入力すると、元の写真や動画をダウンロードできます。',download_ios:'App Storeからダウンロード',explore_android:'Android版を見る',trust_account:'アカウント不要',trust_cloud:'クラウド転送なし',trust_desktop:'PCアプリ不要',device_preview:'AirShareのiOS版とAndroid版の画面プレビュー',ios_alt:'AirShare iOSアプリの実際の画面',android_tagline:'Wi‑Fiで写真や動画を共有',local_only:'ローカルネットワークのみ',android_privacy:'メディアはクラウドへアップロードされません。',ready:'共有を開始できます',ready_copy:'開始すると、安全なリンクとQRコードが表示されます。',start:'共有を開始',how_short:'使い方',a_step1:'1　写真と動画へのアクセスを許可',a_step2:'2　ローカル共有を開始',a_step3:'3　ブラウザからダウンロード',statement_title:'写真は遠回りしません。',statement_copy:'ファイルはスマホからパソコンへ直接転送され、AirShareやほかのクラウドサーバーへ送信されません。',features_label:'転送のための設計',features_title:'設定は少なく。|操作は明確に。',features_copy:'ケーブルもアカウントも事前のアップロードも不要。アプリを開いてからファイルを保存するまで、わずか3ステップです。',f1_title:'元の画質でダウンロード',f1_copy:'写真や動画を圧縮せず、メディアライブラリから直接パソコンへ転送します。',f2_title:'同じWi‑Fiですぐ接続',f2_copy:'ケーブルもパソコン用アプリも不要。最新のブラウザだけで使えます。',f3_title:'確認してからダウンロード',f3_copy:'サムネイルを見て必要なファイルを選び、元データを保存できます。',f4_title:'停止するタイミングも自分で',f4_copy:'共有状態は常に確認でき、完了後はワンタップで接続を停止できます。',platforms_label:'2つのOS、同じシンプルさ',platforms_title:'同じシンプルな流れで、|iPhoneとAndroidに対応。',platforms_copy:'どちらも同じ手順で使え、接続とセキュリティの情報をOSごとに分かりやすく表示します。',ios_copy:'iPhoneで共有を開始し、パソコンから写真や動画へ直接アクセスできます。',ios_1:'ローカルネットワークのアドレスを表示',ios_2:'写真と動画を閲覧・ダウンロード',ios_3:'繁體中文・English・日本語',android_copy:'Android版はQRコード、安全なセッションリンク、明確な共有操作に対応します。',android_1:'ローカルWi‑Fi上のHTTPS暗号化転送',android_2:'QRコードと一時的なセッションリンク',android_3:'共有停止やメディア範囲の変更がいつでも可能',steps_title:'同じWi‑Fiで、|3ステップ。',steps_copy:'スマホとパソコンを同じ信頼できるWi‑Fiに接続するだけです。',s1_title:'メディアアクセスを許可',s1_copy:'AirShareで共有する写真や動画を選びます。',s2_title:'共有を開始',s2_copy:'パソコンで開くアドレスが表示されます。Android版はQRコードにも対応します。',s3_title:'ブラウザでダウンロード',s3_copy:'必要なファイルを選び、パソコンへ直接保存します。',privacy_title:'写真はあなたのネットワーク内に。',privacy_copy:'AirShareはアカウント不要で、分析ツールもファイルを受信するクラウドバックエンドも使用しません。信頼できるWi‑Fiで使用し、完了後は共有を停止してください。',p1:'クラウド転送なし',p2:'分析・追跡なし',p3:'アカウント不要',p4:'ローカル直接転送'}
+    };
+    const menu=document.querySelector('.lang-menu'),toggle=document.querySelector('.lang-button');
+    function setLanguage(lang){
+      if(!copy[lang])lang='zh-Hant';
+      const strings=copy[lang];
+      document.documentElement.lang=lang;
+      document.querySelectorAll('[data-i18n]').forEach(el=>{const value=strings[el.dataset.i18n];if(value)el.textContent=value});
+      document.querySelectorAll('[data-i18n-lines]').forEach(el=>{const value=strings[el.dataset.i18nLines];if(!value)return;el.replaceChildren(...value.split('|').map(line=>{const span=document.createElement('span');span.className='semantic-line';span.textContent=line;return span}));el.setAttribute('aria-label',value.replaceAll('|',' '))});
+      document.querySelectorAll('[data-i18n-aria]').forEach(el=>{const value=strings[el.dataset.i18nAria];if(value)el.setAttribute('aria-label',value)});
+      document.querySelectorAll('[data-i18n-alt]').forEach(el=>{const value=strings[el.dataset.i18nAlt];if(value)el.alt=value});
+      document.querySelectorAll('[data-lang]').forEach(el=>el.setAttribute('aria-current',String(el.dataset.lang===lang)));
+      toggle.setAttribute('aria-label',strings.language);
+      localStorage.setItem('airshare-language',lang);
+      document.title=lang==='en'?'AirShare — Phone photos, straight to your computer':lang==='ja'?'AirShare — スマホの写真を、まっすぐパソコンへ':'AirShare — 手機照片，直接傳到電腦';
+      menu.classList.remove('open');
+      toggle.setAttribute('aria-expanded','false');
+    }
+    toggle.addEventListener('click',()=>{const open=menu.classList.toggle('open');toggle.setAttribute('aria-expanded',String(open))});document.querySelectorAll('[data-lang]').forEach(b=>b.addEventListener('click',()=>setLanguage(b.dataset.lang)));document.addEventListener('click',e=>{if(!e.target.closest('.language')){menu.classList.remove('open');toggle.setAttribute('aria-expanded','false')}});
+    const systemLanguage=(navigator.language||'').toLowerCase();
+    const preferred=localStorage.getItem('airshare-language')||(systemLanguage.startsWith('zh')?'zh-Hant':systemLanguage.startsWith('ja')?'ja':'en');
+    setLanguage(preferred);
+    const observer=new IntersectionObserver(entries=>entries.forEach(e=>e.target.classList.toggle('visible',e.isIntersecting)),{threshold:.12});document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+  </script>
+</body>
 </html>
